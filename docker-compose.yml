@@ -1,0 +1,302 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: libros_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-libros_impresos_db}
+      POSTGRES_USER: ${POSTGRES_USER:-libros_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-libros_app} -d ${POSTGRES_DB:-libros_impresos_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  db-seed:
+    build:
+      context: .
+      dockerfile: db/Dockerfile
+    container_name: libros_db_seed
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-libros_impresos_db}
+      POSTGRES_USER: ${POSTGRES_USER:-libros_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - private_net
+    restart: "no"
+
+  db-tools:
+    build:
+      context: .
+      dockerfile: db/Dockerfile
+    profiles: ["tools"]
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-libros_impresos_db}
+      POSTGRES_USER: ${POSTGRES_USER:-libros_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - private_net
+    restart: "no"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: libros_auth_service
+    environment:
+      PORT: 4001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=auth
+      JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_JWT_ACCESS_SECRET_MIN_32_CHARS}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-CHANGE_ME_JWT_REFRESH_SECRET_MIN_32_CHARS}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      INTERNAL_TOKEN_AUTH: ${INTERNAL_TOKEN_AUTH:-CHANGE_ME_INTERNAL_TOKEN_AUTH}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-seed:
+        condition: service_completed_successfully
+    networks:
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  clients:
+    build:
+      context: .
+      dockerfile: services/clients/Dockerfile
+    container_name: libros_clients_service
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=clients
+      INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-seed:
+        condition: service_completed_successfully
+    networks:
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4002/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  inventory:
+    build:
+      context: .
+      dockerfile: services/inventory/Dockerfile
+    container_name: libros_inventory_service
+    environment:
+      PORT: 4003
+      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=inventory
+      INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-seed:
+        condition: service_completed_successfully
+    networks:
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4003/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  orders:
+    build:
+      context: .
+      dockerfile: services/orders/Dockerfile
+    container_name: libros_orders_service
+    environment:
+      PORT: 4004
+      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=orders
+      INTERNAL_TOKEN_ORDERS: ${INTERNAL_TOKEN_ORDERS:-CHANGE_ME_INTERNAL_TOKEN_ORDERS}
+      INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
+      INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
+      INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
+      CLIENTS_SERVICE_URL: http://clients:4002
+      INVENTORY_SERVICE_URL: http://inventory:4003
+      PAYMENTS_SERVICE_URL: http://payments:4005
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-4000}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-seed:
+        condition: service_completed_successfully
+      clients:
+        condition: service_healthy
+      inventory:
+        condition: service_healthy
+    networks:
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4004/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  payments:
+    build:
+      context: .
+      dockerfile: services/payments/Dockerfile
+    container_name: libros_payments_service
+    environment:
+      PORT: 4005
+      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=payments
+      INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
+      EMAIL_PROVIDER_MODE: ${EMAIL_PROVIDER_MODE:-sandbox}
+      EMAIL_API_KEY: ${EMAIL_API_KEY:-CHANGE_ME_SANDBOX_EMAIL_KEY}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-seed:
+        condition: service_completed_successfully
+    networks:
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4005/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  graphql-gateway:
+    build:
+      context: .
+      dockerfile: graphql-gateway/Dockerfile
+    container_name: libros_graphql_gateway
+    environment:
+      PORT: 4006
+      INTERNAL_TOKEN_GRAPHQL: ${INTERNAL_TOKEN_GRAPHQL:-CHANGE_ME_INTERNAL_TOKEN_GRAPHQL}
+      INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
+      INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
+      INTERNAL_TOKEN_ORDERS: ${INTERNAL_TOKEN_ORDERS:-CHANGE_ME_INTERNAL_TOKEN_ORDERS}
+      INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
+      CLIENTS_SERVICE_URL: http://clients:4002
+      INVENTORY_SERVICE_URL: http://inventory:4003
+      ORDERS_SERVICE_URL: http://orders:4004
+      PAYMENTS_SERVICE_URL: http://payments:4005
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-4000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      clients:
+        condition: service_healthy
+      inventory:
+        condition: service_healthy
+      orders:
+        condition: service_healthy
+    networks:
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4006/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: libros_api_gateway
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-60}
+      RATE_LIMIT_API_MAX: ${RATE_LIMIT_API_MAX:-600}
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-4000}
+      AUTH_SERVICE_URL: http://auth-service:4001
+      CLIENTS_SERVICE_URL: http://clients:4002
+      INVENTORY_SERVICE_URL: http://inventory:4003
+      ORDERS_SERVICE_URL: http://orders:4004
+      PAYMENTS_SERVICE_URL: http://payments:4005
+      GRAPHQL_GATEWAY_URL: http://graphql-gateway:4006
+      INTERNAL_TOKEN_AUTH: ${INTERNAL_TOKEN_AUTH:-CHANGE_ME_INTERNAL_TOKEN_AUTH}
+      INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
+      INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
+      INTERNAL_TOKEN_ORDERS: ${INTERNAL_TOKEN_ORDERS:-CHANGE_ME_INTERNAL_TOKEN_ORDERS}
+      INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
+      INTERNAL_TOKEN_GRAPHQL: ${INTERNAL_TOKEN_GRAPHQL:-CHANGE_ME_INTERNAL_TOKEN_GRAPHQL}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      clients:
+        condition: service_healthy
+      inventory:
+        condition: service_healthy
+      orders:
+        condition: service_healthy
+      graphql-gateway:
+        condition: service_healthy
+    networks:
+      - public_net
+      - private_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: libros_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - public_net
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+
+networks:
+  public_net:
+    driver: bridge
+  private_net:
+    driver: bridge
+    internal: true

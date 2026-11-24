@@ -1,0 +1,406 @@
+/* ==========================================================================
+   Estilos del Sistema de Vales de Alimentacion - Libros Impresos S.A.
+   Arquitectura CSS (Evaluacion 1):
+   - Bootstrap 5 Grid System: macroestructura de 12 columnas y breakpoints.
+   - Box Model explicito: padding, margin, border, min/max-width y box-sizing.
+   - Flexbox explicito: alineacion, distribucion, orden y wrapping interno.
+   ========================================================================== */
+
+:root {
+  --bg-canvas: #f4f6f9;
+  --bg-surface: #ffffff;
+  --bg-muted: #eef2f6;
+  --brand-primary: #173a5e;
+  --brand-accent: #d97706;
+  --brand-success: #15803d;
+  --brand-danger: #b91c1c;
+  --text-main: #1f2937;
+  --text-muted: #526071;
+  --border-subtle: #d5dde7;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+}
+
+/* Control explicito del Box Model global */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.app-main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+/* Header & Navigation (Flexbox + Box Model) */
+.app-header {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  border-bottom: 4px solid var(--brand-accent);
+  padding: 0.9rem 0;
+}
+
+.flex-header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background-color: var(--brand-accent);
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  margin: 0.15rem 0 0 0;
+  font-size: 0.8rem;
+  color: #dbeafe;
+}
+
+.nav-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.session-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.user-pill {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Superficies y tarjetas (Box Model explicito) */
+.panel-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.panel-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+/* Tarjetas de servicio en Totem (Flexbox interno + Box Model) */
+.service-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.service-card.is-active-window {
+  border-color: var(--brand-success);
+}
+
+.service-card.is-inactive-window {
+  background-color: #f8fafc;
+  opacity: 0.85;
+}
+
+.service-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.service-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.service-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.price-tag {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--brand-primary);
+}
+
+/* Comprobante de vale estilo impresora termica (Box Model + Flexbox) */
+.voucher-receipt {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  border: 2px dashed var(--brand-primary);
+  border-radius: var(--radius-sm);
+  background-color: #fffdf7;
+}
+
+.voucher-receipt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.voucher-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px dotted #e5e7eb;
+  font-size: 0.92rem;
+}
+
+/* Carrito y productos de cajero */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0.9rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+}
+
+.product-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--bg-muted);
+}
+
+.cart-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cart-qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Paneles de estado operacional: carga, vacio, error */
+.state-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 2rem 1.25rem;
+  margin: 0.5rem 0;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+}
+
+.state-panel.state-error {
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+  color: var(--brand-danger);
+}
+
+/* KPI cards para auditoria */
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 1rem;
+  border: 1px solid var(--border-subtle);
+  border-left: 5px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+}
+
+.kpi-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--brand-primary);
+  line-height: 1.1;
+}
+
+/* Footer y toast stack */
+.app-footer {
+  background-color: #e2e8f0;
+  border-top: 1px solid var(--border-subtle);
+  padding: 0.75rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.flex-footer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.correlation-chip {
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+}
+
+.toast-stack {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 360px;
+}
+
+.app-toast {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background-color: #1f2937;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.app-toast.toast-success {
+  background-color: var(--brand-success);
+}
+
+.app-toast.toast-error {
+  background-color: var(--brand-danger);
+}
+
+/* Responsividad explicita para 4 viewports (375px, 768px, 1024px, 1440px) */
+@media (max-width: 767.98px) {
+  .flex-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-toolbar {
+    order: 3;
+    justify-content: flex-start;
+  }
+
+  .session-summary {
+    order: 2;
+    justify-content: space-between;
+  }
+
+  .panel-card {
+    padding: 0.9rem;
+  }
+
+  .service-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Reglas para impresion directa de comprobante en Totem */
+@media print {
+  .app-header,
+  .app-footer,
+  .no-print,
+  .toast-stack {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff;
+  }
+
+  .voucher-receipt {
+    border: 2px solid #000000;
+    box-shadow: none;
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,66 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TransaccionCanje {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  idempotencyKey       String   @unique @map("idempotency_key") @db.VarChar(120)
+  valeId               String   @unique @map("vale_id") @db.Uuid
+  numeroVale           String   @map("numero_vale") @db.VarChar(40)
+  cajeroId             String   @map("cajero_id") @db.Uuid
+  casinoCodigo         String   @map("casino_codigo") @db.VarChar(32)
+  valorValeClp         Int      @map("valor_vale_clp")
+  totalConsumoClp      Int      @map("total_consumo_clp")
+  montoCubiertoValeClp Int      @map("monto_cubierto_vale_clp")
+  saldoAFavorClp       Int      @map("saldo_a_favor_clp")
+  diferenciaPagadaClp  Int      @map("diferencia_pagada_clp")
+  metodoPagoDiferencia String   @map("metodo_pago_diferencia") @db.VarChar(32)
+  estado               String   @db.VarChar(24)
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("transacciones_canje")
+}
+
+model RendicionCasino {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  casinoCodigo            String   @map("casino_codigo") @db.VarChar(32)
+  anio                    Int
+  mes                     Int
+  totalValesCanjeados     Int      @map("total_vales_canjeados")
+  totalValorValesClp      Int      @map("total_valor_vales_clp")
+  totalConsumoClp         Int      @map("total_consumo_clp")
+  totalDiferenciasClp     Int      @map("total_diferencias_clp")
+  totalSaldosNoUsadosClp  Int      @map("total_saldos_no_usados_clp")
+  estado                  String   @db.VarChar(24)
+  generadaPorId           String   @map("generada_por_id") @db.Uuid
+  generadaEn              DateTime @default(now()) @map("generada_en") @db.Timestamptz
+
+  @@unique([casinoCodigo, anio, mes])
+  @@map("rendiciones_casino")
+}
+
+model AvisoSemanalCorreo {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  funcionarioId      String    @map("funcionario_id") @db.Uuid
+  codigoFuncionario  String    @map("codigo_funcionario") @db.VarChar(32)
+  emailDestino       String    @map("email_destino") @db.VarChar(150)
+  semanaInicio       DateTime  @map("semana_inicio") @db.Date
+  semanaFin          DateTime  @map("semana_fin") @db.Date
+  valesDisponibles   Int       @default(0) @map("vales_disponibles")
+  valesUsados        Int       @default(0) @map("vales_usados")
+  valesNoUsados      Int       @default(0) @map("vales_no_usados")
+  estadoEnvio        String    @map("estado_envio") @db.VarChar(24)
+  proveedorRespuesta String?   @map("proveedor_respuesta") @db.VarChar(255)
+  generadoEn         DateTime  @default(now()) @map("generado_en") @db.Timestamptz
+  enviadoEn          DateTime? @map("enviado_en") @db.Timestamptz
+
+  @@unique([funcionarioId, semanaInicio, semanaFin])
+  @@map("avisos_semanales_correo")
+}

@@ -1,0 +1,75 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vale {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  numeroVale            String    @unique @map("numero_vale") @db.VarChar(40)
+  claveUnicidad         String    @unique @map("clave_unicidad") @db.VarChar(140)
+  funcionarioId         String?   @map("funcionario_id") @db.Uuid
+  codigoFuncionario     String?   @map("codigo_funcionario") @db.VarChar(32)
+  nombreBeneficiario    String    @map("nombre_beneficiario") @db.VarChar(150)
+  perfilCodigo          String    @map("perfil_codigo") @db.VarChar(40)
+  servicioId            String    @map("servicio_id") @db.Uuid
+  servicioCodigo        String    @map("servicio_codigo") @db.VarChar(40)
+  servicioNombre        String    @map("servicio_nombre") @db.VarChar(100)
+  tipoVale              String    @map("tipo_vale") @db.VarChar(32)
+  numeroTurno           Int       @map("numero_turno")
+  fechaVigencia         DateTime  @map("fecha_vigencia") @db.Date
+  horaInicioPermitida   String    @map("hora_inicio_permitida") @db.VarChar(5)
+  horaFinPermitida      String    @map("hora_fin_permitida") @db.VarChar(5)
+  valorClp              Int       @map("valor_clp")
+  sucursalEmisionCodigo String    @map("sucursal_emision_codigo") @db.VarChar(32)
+  estado                String    @db.VarChar(20)
+  motivoAdicional       String?   @map("motivo_adicional") @db.VarChar(255)
+  emitidoPorId          String    @map("emitido_por_id") @db.Uuid
+  emitidoEn             DateTime  @default(now()) @map("emitido_en") @db.Timestamptz
+  impresoEn             DateTime? @map("impreso_en") @db.Timestamptz
+  canjeadoEn            DateTime? @map("canjeado_en") @db.Timestamptz
+  anuladoEn             DateTime? @map("anulado_en") @db.Timestamptz
+  canje                 Canje?
+
+  @@index([funcionarioId, fechaVigencia], map: "idx_orders_vales_func_fecha")
+  @@index([estado], map: "idx_orders_vales_estado")
+  @@map("vales")
+}
+
+model Canje {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  valeId              String      @unique @map("vale_id") @db.Uuid
+  numeroVale          String      @map("numero_vale") @db.VarChar(40)
+  cajeroId            String      @map("cajero_id") @db.Uuid
+  cajeroCodigo        String      @map("cajero_codigo") @db.VarChar(32)
+  casinoCodigo        String      @map("casino_codigo") @db.VarChar(32)
+  totalConsumoClp     Int         @map("total_consumo_clp")
+  valorValeClp        Int         @map("valor_vale_clp")
+  saldoAFavorClp      Int         @map("saldo_a_favor_clp")
+  diferenciaPagadaClp Int         @map("diferencia_pagada_clp")
+  transaccionPagoId   String      @map("transaccion_pago_id") @db.Uuid
+  canjeadoEn          DateTime    @default(now()) @map("canjeado_en") @db.Timestamptz
+  vale                Vale        @relation(fields: [valeId], references: [id])
+  items               CanjeItem[]
+
+  @@map("canjes")
+}
+
+model CanjeItem {
+  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  canjeId           String @map("canje_id") @db.Uuid
+  productoId        String @map("producto_id") @db.Uuid
+  productoCodigo    String @map("producto_codigo") @db.VarChar(40)
+  productoNombre    String @map("producto_nombre") @db.VarChar(120)
+  cantidad          Int
+  precioUnitarioClp Int    @map("precio_unitario_clp")
+  subtotalClp       Int    @map("subtotal_clp")
+  canje             Canje  @relation(fields: [canjeId], references: [id], onDelete: Cascade)
+
+  @@map("canje_items")
+}

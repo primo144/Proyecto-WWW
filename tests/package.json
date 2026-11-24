@@ -1,0 +1,26 @@
+{
+  "name": "@libros/tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "vitest run src/e2e/critical-flows.test.ts",
+    "test:security": "vitest run src/security/negative-security.test.ts",
+    "test:resilience": "vitest run src/resilience/dependency-failure.test.ts",
+    "test:all": "vitest run src/e2e src/security",
+    "test:load": "tsx src/load/voucher-issuance.load.ts",
+    "test:cycle": "tsx src/scripts/run-validation-cycle.ts"
+  },
+  "dependencies": {
+    "autocannon": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/autocannon": "^7.12.7",
+    "@types/node": "^20.17.9",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.6"
+  }
+}

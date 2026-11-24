@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+**/generated/
+docs/evidencias/RUN*
+docs/evidencias/load_report_*.json
+*.log
+.DS_Store
+coverage/
+.vitest-cache/
