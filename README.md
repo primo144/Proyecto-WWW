@@ -1,6 +1,10 @@
 # Sistema de Emision y Control de Vales de Alimentacion — Caso 18 ("Libros Impresos S.A.")
 
-Proyecto integral de la asignatura **Lenguajes de Programacion en WWW** (Evaluaciones 1, 2 y 3). Implementa de extremo a extremo la solucion automatizada de vales de colacion para **Libros Impresos S.A.** (500 funcionarios en expansion a una segunda sucursal/imprenta, operacion 24/7 en 3 turnos mensuales).
+Proyecto integral de la asignatura **Lenguajes de Programacion en WWW**. Implementa de extremo a extremo la solucion automatizada de vales de colacion para **Libros Impresos S.A.** 
+
+**Integrantes**
+- Cristobal Barahona 202373545-0
+
 
 ---
 
