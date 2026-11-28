@@ -1,0 +1,113 @@
+{
+  "runId": "RUN_UNIT2_2026-11-28T02-10-52-256Z",
+  "generatedAt": "2026-11-28T02:10:53.618Z",
+  "gateway": "http://localhost:8080",
+  "environment": "Production",
+  "clockOverride": null,
+  "passed": 11,
+  "failed": 1,
+  "items": [
+    {
+      "id": "P00",
+      "title": "Gateway health",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "48a897ca-23a2-47fb-a4e9-b1d95d30b937",
+      "durationMs": 45,
+      "service": "api-gateway"
+    },
+    {
+      "id": "P01",
+      "title": "Anonymous catalog query backed by Oracle",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "1e498723-ace3-41ba-ac6d-9cb20bb5a993",
+      "durationMs": 155,
+      "rows": 5
+    },
+    {
+      "id": "P02",
+      "title": "Anonymous access is rejected",
+      "result": "PASSED",
+      "httpStatus": 401,
+      "correlationId": "82a93541-520a-4be9-843e-86585504004b",
+      "durationMs": 14
+    },
+    {
+      "id": "P03",
+      "title": "PBKDF2 login and persistent session",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "e717c492-ae69-4a00-b0e5-b5f0b89af48e",
+      "durationMs": 150,
+      "account": "EMP001",
+      "role": "FUNCIONARIO"
+    },
+    {
+      "id": "P04",
+      "title": "Authorized employee reads own profile",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "9286fb0a-e1e0-43f5-8074-f60dab2d1271",
+      "durationMs": 67
+    },
+    {
+      "id": "P05",
+      "title": "Cross-employee IDOR is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "6c092c38-4773-4426-aa67-f28d6859f52c",
+      "durationMs": 13
+    },
+    {
+      "id": "P06",
+      "title": "Non-admin audit access is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "dd58dfbb-bd6a-4a5c-8239-24536b66f49a",
+      "durationMs": 11
+    },
+    {
+      "id": "P07",
+      "title": "GraphQL summary aggregates clients, inventory, orders and payments",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "061a7668-6ee3-4ff7-807b-b11f0ce8ac80",
+      "durationMs": 588,
+      "serviceRows": 2,
+      "branches": 2,
+      "partialErrors": 0
+    },
+    {
+      "id": "P08",
+      "title": "GraphQL depth limit rejects a depth-five query",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "6bc2bdfe-6772-4a5d-9054-df6d6dc617b3",
+      "durationMs": 14
+    },
+    {
+      "id": "P09",
+      "title": "GraphQL alias and complexity limits reject abuse",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "9431a3ed-e59b-499e-b3ec-75b04043c423",
+      "durationMs": 13
+    },
+    {
+      "id": "P10",
+      "title": "Clients service creates a profile",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "670ad0e4-1316-46c3-b187-3c14d36dc32a",
+      "durationMs": 76,
+      "profileCode": "TEST_PROFILE_MWZRX2C5"
+    },
+    {
+      "id": "P12",
+      "title": "Oracle integration smoke run",
+      "result": "FAILED",
+      "message": "employee and auth user creation: expected HTTP 201, observed 500: {\"error\":{\"code\":\"INTERNAL_ERROR\",\"message\":\"No fue posible completar la operación.\",\"correlationId\":\"27eb230c-6fde-4683-b366-a2b2d613b7d5\"}}\n\n500 !== 201\n"
+    }
+  ]
+}

@@ -1,174 +1,87 @@
-# Sistema de Emision y Control de Vales de Alimentacion — Caso 18 ("Libros Impresos S.A.")
+# Entrega 2 · Backend seguro con Oracle y .NET
 
-Proyecto integral de la asignatura **Lenguajes de Programacion en WWW**. Implementa de extremo a extremo la solucion automatizada de vales de colacion para **Libros Impresos S.A.** 
+Rama acumulativa: conserva la Entrega 1 (prototipo responsivo, equivalente local a Figma, API simulada y evidencias) e integra los flujos del Caso 18 con un backend en **ASP.NET Core 10** y **Oracle Database Free**. El Compose predeterminado inicia esta arquitectura .NET/Oracle.
 
-**Integrantes**
-- Cristobal Barahona 202373545-0
+- [Informe de arquitectura — Unidad 2](docs/INFORME_UNIDAD_2_BACKEND.md)
+- [Informe y evidencias de la Entrega 1](docs/ENTREGA_1_FRONTEND.md)
+- [Enunciado del Caso 18 y pautas](docs/enunciados/)
+- [Evidencias del frontend](docs/evidencias/entrega-1/README.md)
 
-## Entrega 1 — Prototipo y API simulada
+El backend Node.js/PostgreSQL heredado se mantiene intacto en `main` y `Entrega-1`; esta rama deja ese stack fuera del código activo para que el despliegue y la evaluación usen Oracle/.NET sin ambigüedad.
 
-El prototipo funcional aislado para la primera evaluación se inicia con `npm run prototype` y se abre en `http://localhost:8081/prototipo-eval1.html`. Incluye identificación de demostración, consulta de servicios, emisión simulada de vale, estados vacío/error y comprobante imprimible. El diseño equivalente local a Figma está en [`docs/prototipos/entrega-1.html`](docs/prototipos/entrega-1.html). La prueba de navegador y las capturas de los cuatro viewports se generan con `npm run test:prototype`; consulta [`docs/ENTREGA_1_FRONTEND.md`](docs/ENTREGA_1_FRONTEND.md).
+## Arquitectura activa
 
-Esta ruta no necesita API real ni base de datos; mantiene sus datos en memoria y los pierde al detener el servidor. El resto de los componentes heredados del monorepo de origen se conservan para las entregas posteriores.
+- Una imagen ASP.NET Core, ejecutada como procesos de servicio independientes: `auth-service`, `clients-service`, `inventory-service`, `orders-service`, `payments-service`, `graphql-gateway` y `gateway`.
+- Oracle Free con propietarios y credenciales de esquema separados (`AUTH_SVC`, `CLIENTS_SVC`, `INVENTORY_SVC`, `ORDERS_SVC`, `PAYMENTS_SVC`); el gateway es el único backend publicado.
+- Frontend SPA existente y el prototipo de la Entrega 1 en Nginx.
+- API Gateway con allowlist de rutas, JWT/session verification, limpieza de cabeceras internas, límites de solicitudes, propagación `X-Correlation-ID` y respuestas de error controladas.
+- GraphQL privado con agregaciones `miResumenComensal`, `detalleVale`, `panelAuditoria` y `catalogoCasino`; controla el acceso, profundidad y consultas excesivas.
+- Contraseñas con PBKDF2-HMAC-SHA256, 210.000 iteraciones y sal individual; acceso JWT de 15 minutos, refresh de 7 días y sesiones revocables.
 
+## Inicio
 
----
+Requisitos: Docker Desktop/Compose v2, .NET SDK 10 y Node.js 20+ para las suites locales.
 
-## 1. Arquitectura y Stack Tecnologico
+1. Copia la plantilla: `Copy-Item .env.example .env`.
+2. Sustituye los secretos `CHANGE_ME_*` por valores aleatorios (32+ caracteres). No reutilices tokens entre servicios. Las contraseñas de Oracle de cada esquema **deben coincidir con las referencias de `db/oracle/01-create-users.sql`**; si rotas esas credenciales, actualiza ambos lugares y reinicia la base eliminando su volumen.
+3. Construye y levanta el stack:
 
-- **Prototipo independiente (Evaluacion 1):** `frontend/prototipo-eval1.html` usa Bootstrap 5.3, CSS responsivo con Grid/Box Model/Flexbox y JavaScript DOM. Sus servicios HTTP locales simulados están en `frontend/prototipo/server.mjs`; no dependen del backend real. La SPA integrada original está en `frontend/index.html`.
-- **API Gateway (`gateway/`, puerto `8080`):** Unico punto de entrada publico. Implementa rate limiting, limpieza de cabeceras internas falsificadas (`sanitizeHeaders`), validacion de JWT contra `auth-service`, inyeccion de contexto verificado (`x-user-id`, `x-user-role`, `x-user-code`), propagacion de `X-Correlation-ID`, timeouts y tolerancia a fallos.
-- **GraphQL Gateway Privado (`graphql-gateway/`, puerto `4006` en `private_net`):** `graphql-yoga` + `DataLoader` para agregaciones multi-subsistema (`miResumenComensal`, `detalleVale`, `panelAuditoria`, `catalogoCasino`), limites de profundidad (`maxDepth=4`) y complejidad (`maxComplexity=500`), autorizacion por campo (`rut`, `email`) y degradacion controlada (`partialErrors`).
-- **Microservicios Privados en `private_net` (Node.js 24 LTS + TypeScript strict + Zod + Pino + Prisma ORM):**
-  - `auth-service` (4001, esquema `auth`): Login con hash adaptativo `bcryptjs`, emision/verificacion/renovacion/revocacion de JWT y sesiones en PostgreSQL.
-  - `clients` (4002, esquema `clients`): Sucursales (`CENTRAL`, `NORTE`), casinos, perfiles de comensal (normal y multi-vale), funcionarios y turnos mensuales.
-  - `inventory` (4003, esquema `inventory`): Servicios de alimentacion extensibles, ventanas horarias por turno, valorizaciones por perfil y catalogo/cotizacion autoritativa de productos del casino.
-  - `orders` (4004, esquema `orders`): Motor de emision e impresion en totem (`< 2s`), validacion de turno/horario, prevencion atomica de duplicados, vales adicionales/visitas y registro de canje en casino.
-  - `payments` (4005, esquema `payments`): Liquidacion idempotente (cobertura, saldo a favor y diferencia pagada), rendicion mensual y ejecucion del procedimiento almacenado `payments.sp_generar_avisos_semanales` con `EmailSandboxAdapter`.
-- **Persistencia:** PostgreSQL 16 con 5 esquemas aislados (`auth`, `clients`, `inventory`, `orders`, `payments`) sin exposicion de puerto al host.
-- **Aislamiento de Red (`docker-compose.yml`):**
-  - `public_net`: conecta solo `frontend` (`3000:80`) y `gateway` (`8080:8080`).
-  - `private_net` (`internal: true`): conecta `postgres`, `auth-service`, `clients`, `inventory`, `orders`, `payments`, `graphql-gateway` y `gateway`. Ningun microservicio privado ni la BD expone puertos al host.
+   ```powershell
+   docker compose up --build -d
+   docker compose ps
+   Invoke-RestMethod http://localhost:8080/health
+   ```
 
----
+4. Abre `http://localhost:3000`. La API pública está en `http://localhost:8080`; Oracle y los microservicios no publican puertos en el host.
 
-## 2. Estructura del Repositorio
+Oracle ejecuta `db/oracle/01-create-users.sql` en el primer inicio. El servicio `db-seed` carga las cuentas y los datos ficticios de forma idempotente. El reset determinista es:
 
-```text
-.
-├── docker-compose.yml            # Orquestacion con public_net y private_net (internal)
-├── .env.example                  # Plantilla simbolica de variables (sin secretos reales)
-├── package.json                  # Workspaces del monorepo
-├── shared/                       # Logger Pino con redact, AppError, middlewares, internalFetch
-├── db/                           # init.sql (5 esquemas + SP), seed.ts y reset-db.ts
-├── auth-service/                 # Autenticacion bcrypt + JWT + sesiones
-├── services/
-│   ├── clients/                  # Funcionarios, perfiles, sucursales y turnos mensuales
-│   ├── inventory/                # Servicios extensibles, valorizaciones y productos
-│   ├── orders/                   # Emision/impresion de vales, canje y auditoria
-│   └── payments/                 # Liquidacion idempotente, rendiciones y avisos SP
-├── graphql-gateway/              # Agregacion GraphQL privada + DataLoader + limites
-├── gateway/                      # API Gateway publico (unica frontera HTTP expuesta)
-├── frontend/                     # SPA modular HTML5 + Bootstrap 5 + CSS + JS Vanilla
-├── tests/                        # Suite Vitest (E2E, Seguridad, Resiliencia) + autocannon
-└── docs/
-    ├── enunciados/               # Los 4 PDFs originales de la asignatura
-    ├── evidencias/               # Destino de salidas RUNxx, Exx y load_report_*.json
-    ├── INFORME_UNIDAD_2_BACKEND.md
-    └── INFORME_UNIDAD_3_VALIDACION.md
+```powershell
+docker compose --profile tools run --rm db-reset
 ```
 
----
+`docker compose down` detiene el stack conservando el volumen Oracle; `docker compose down -v` lo elimina para recrear la base desde cero.
 
-## 3. Requisitos Previos e Inicio desde Cero
+## Cuentas ficticias
 
-- Docker Engine + Docker Compose v2 (`docker compose`).
-- Node.js >= 20 (para ejecutar scripts locales de verificacion/pruebas desde el host; los contenedores usan Node 24 LTS).
+Contraseña inicial **solo para la base local de pruebas**: `Libros2026!`.
 
-### Pasos de Despliegue Reproducible
+| Código | Rol | Perfil / uso |
+| --- | --- | --- |
+| `EMP001` | Funcionario | Obrero, turno 1 |
+| `EMP002` | Funcionario | Administrativo, turno 2 |
+| `EMP003` | Funcionario | Jefe, turno 3, Sucursal Norte |
+| `SEC001` | Funcionario | Secretaria de Gerencia, multi-vale |
+| `CAJ001`, `CAJ002` | Cajero | Caja Central / Norte |
+| `ADM001` | Administrador | Administración, pruebas de auditoría |
 
-```bash
-# 1. Crear configuracion local desde la plantilla simbolica
-cp .env.example .env
+Los registros usan correos y RUT ficticios. No uses personas reales ni la contraseña de demostración en un entorno externo.
 
-# 2. (Recomendado) Reemplazar los valores CHANGE_ME_* en .env con claves aleatorias locales
-# Por ejemplo usando openssl:
-# sed -i "s/CHANGE_ME_DB_PASSWORD/$(openssl rand -hex 16)/g" .env
+## Pruebas
 
-# 3. Construir e iniciar toda la infraestructura + seed inicial determinista
-docker compose up --build -d
+La Entrega 1 mantiene su suite de navegador y capturas de los cuatro viewports:
 
-# 4. Verificar salud de los servicios via API Gateway
-curl -s http://localhost:8080/health | jq .
+```powershell
+npm ci
+npm run test:prototype
 ```
 
-Accesos disponibles en el navegador:
-- **Aplicacion Web (Frontend):** `http://localhost:3000`
-- **API Gateway (REST / GraphQL):** `http://localhost:8080`
+Para validar Oracle y los recorridos backend desde un estado limpio, ejecuta:
 
-Para detener el sistema conservando datos o eliminando volumenes:
-
-```bash
-docker compose down        # Detener contenedores
-docker compose down -v     # Detener y eliminar volumen PostgreSQL
+```powershell
+.\tests\oracle\run-entrega2-tests.ps1
 ```
 
----
+El script restablece Oracle, inicia temporalmente `orders-service` con un reloj simulado a las 21:00 de Santiago (para que el ensayo repetible emita `CENA1` del turno 2), ejecuta `npm run test:oracle` y devuelve ese servicio al modo normal. Las pruebas crean empleados/productos/servicios y vales ficticios; las evidencias sanitizadas se guardan en `docs/evidencias/entrega-2/`.
 
-## 4. Datos Ficticios de Prueba y Restauracion Determinista
+Las salidas registran una medición aislada de emisión; **no** constituyen benchmark de concurrencia ni una afirmación de p95. Las capturas de Entrega 1 son emulación de navegador, no pruebas en hardware físico.
 
-El script `db/src/seed.ts` pobla automaticamente sucursales (`CENTRAL`, `NORTE`), casinos, servicios (`DESAYUNO`, `ALMUERZO`, `ONCE`, `CENA1`, `CENA2`, `REUNION_COFFEE`), 10 productos de casino, valorizaciones por perfil y turnos mensuales para el mes actual.
+## Entrega 1 conservada
 
-Cuentas ficticias de prueba (contrasena inicial de entorno de pruebas: `Libros2026!`):
+El prototipo UI/diseño equivalente local se puede ejecutar independientemente:
 
-| Codigo | Rol | Perfil | Turno Mensual | Sucursal Base | Uso Principal en Pruebas |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `EMP001` | `FUNCIONARIO` | `OBRERO` | Turno 1 (`08:00-16:00`) | `CENTRAL` | Totem diurno y vale adicional |
-| `EMP002` | `FUNCIONARIO` | `ADMINISTRATIVO` | Turno 2 (`16:00-24:00`) | `CENTRAL` | Totem vespertino y prueba IDOR |
-| `EMP003` | `FUNCIONARIO` | `JEFE` | Turno 3 (`00:00-08:00`) | `NORTE` | Totem nocturno y Sucursal Norte |
-| `SEC001` | `FUNCIONARIO` | `SECRETARIA_GERENCIA` | Turno 1 (`08:00-16:00`) | `CENTRAL` | Multi-vale (visitas, hasta 10/horario) |
-| `CAJ001` | `CAJERO` | `ADMINISTRATIVO` | Turno 1 | `CENTRAL` | Canje en comedor/cafeteria Central |
-| `CAJ002` | `CAJERO` | `ADMINISTRATIVO` | Turno 2 | `NORTE` | Canje en comedor Sucursal Norte |
-| `ADM001` | `ADMINISTRADOR` | `GERENTE` | Turno 1 | `CENTRAL` | Servicios, perfiles, auditoria y SP |
-
-### Restauracion Limpia de Datos Iniciales (`reset-db`)
-
-```bash
-docker compose --profile tools run --rm db-tools npm run reset-db:prod
+```powershell
+npm run prototype
 ```
 
----
-
-## 5. Ejecucion de Pruebas Automatizadas (E2E, Seguridad, Carga y Resiliencia)
-
-Instale dependencias en el host (una sola vez) para ejecutar las suites contra `http://localhost:8080`:
-
-```bash
-npm install
-```
-
-### Comandos Individuales
-
-```bash
-# 1. Recorridos criticos E2E (P01 - P05)
-npm run test:e2e
-
-# 2. Pruebas negativas y de seguridad (P06 - P11)
-npm run test:security
-
-# 3. Prueba de carga RF2 (< 2s) con autocannon + reporte JSON
-npm run test:load
-
-# 4. Prueba de caida controlada de payments (P12)
-docker compose stop payments
-RESILIENCE_TEST_ENABLED=1 RUN_ID=RUN_RESILIENCE npm run test:resilience
-docker compose start payments
-```
-
-### Ciclo Completo de Validacion Reproducible (`RUN01` + `RUN02` + Carga + Resiliencia)
-
-```bash
-RESET_VIA_DOCKER=1 DOCKER_RESILIENCE=1 npm run test:cycle
-```
-
-Las evidencias depuradas (sin JWT ni contrasenas) se escriben automaticamente en `docs/evidencias/`.
-
----
-
-## 6. Protocolo de Verificacion Responsiva (Evaluacion 1)
-
-El frontend (`frontend/index.html`, `frontend/css/styles.css`, `frontend/js/`) debe comprobarse en 4 anchos de viewport (ej. mediante DevTools del navegador):
-
-1. **Movil (`375 x 812`):** Cabecera pasa a disposicion vertical (`flex-direction: column`), barra de navegacion reordenada (`order: 3`), tarjetas de servicio y productos ocupan `12` columnas (`col-12`), botones ocupan ancho completo sin desborde horizontal.
-2. **Tablet (`768 x 1024`):** Tarjetas de servicio en `2` columnas (`col-md-6`), panel de caja y carrito pasan a apilamiento `col-12` legible, tablas dentro de `.table-responsive`.
-3. **Laptop (`1024 x 768`):** Layout de 2 regiones principales (`col-lg-7` y `col-lg-5`) en Totem, Caja y Login; catalogo de productos en 2 columnas (`col-sm-6`).
-4. **Escritorio (`1440 x 900`):** Grilla completa de 12 columnas con catalogo en 3 columnas (`col-xl-4`), KPIs de auditoria en 4 columnas (`col-xl-3`) y comprobante termico centrado (`max-width: 440px`).
-
----
-
-## 7. Documentacion Completa del Expediente
-
-- [Informe de Arquitectura Backend — Unidad 2 (10 Modulos + ADR)](docs/INFORME_UNIDAD_2_BACKEND.md)
-- [Informe de Integracion y Validacion — Unidad 3 (7 Etapas + Matriz de Trazabilidad + Guion de Defensa)](docs/INFORME_UNIDAD_3_VALIDACION.md)
-- [Guia del Paquete de Evidencias](docs/evidencias/README.md)
-- [Enunciados Originales](docs/enunciados/)
+Abre `http://localhost:8081/prototipo-eval1.html`. Emplea servicios HTTP simulados en memoria y se reinicia al cerrar Node; no requiere Oracle ni emite vales de negocio.

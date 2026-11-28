@@ -170,7 +170,7 @@ export function renderAdminView(root) {
 
       const reconRows =
         panel.rendicionCasinos.length === 0
-          ? [el('tr', {}, [el('td', { attrs: { colspan: 6 }, className: 'text-center text-muted', text: 'Sin rendiciones registradas.' })])]
+          ? [el('tr', {}, [el('td', { attrs: { colspan: 7 }, className: 'text-center text-muted', text: 'Sin rendiciones registradas.' })])]
           : panel.rendicionCasinos.map((rc) =>
               el('tr', {}, [
                 el('td', { className: 'fw-semibold', text: rc.casinoCodigo }),
@@ -178,7 +178,25 @@ export function renderAdminView(root) {
                 el('td', { text: formatClp(rc.totalValorValesClp) }),
                 el('td', { text: formatClp(rc.totalConsumoClp) }),
                 el('td', { text: formatClp(rc.totalDiferenciasClp) }),
-                el('td', { text: formatClp(rc.totalSaldosNoUsadosClp) })
+                el('td', { text: formatClp(rc.totalSaldosNoUsadosClp) }),
+                el('td', {}, [el('button', {
+                  type: 'button',
+                  className: 'btn btn-outline-primary btn-sm',
+                  text: 'Cerrar mes actual',
+                  onClick: async () => {
+                    try {
+                      const currentDate = new Date();
+                      await apiRequest('/api/v1/payments/reconciliation/close', {
+                        method: 'POST',
+                        body: { casinoCodigo: rc.casinoCodigo, anio: currentDate.getFullYear(), mes: currentDate.getMonth() + 1 }
+                      });
+                      showToast(`Rendición mensual de ${rc.casinoCodigo} cerrada`, 'success');
+                      await renderAuditTab();
+                    } catch (err) {
+                      showToast(err.message, 'error');
+                    }
+                  }
+                })])
               ])
             );
 
@@ -256,7 +274,8 @@ export function renderAdminView(root) {
                       el('th', { text: 'Valor Vales' }),
                       el('th', { text: 'Consumo Real' }),
                       el('th', { text: 'Diferencias Pagadas' }),
-                      el('th', { text: 'Saldos no Usados' })
+                      el('th', { text: 'Saldos no Usados' }),
+                      el('th', { text: 'Cierre' })
                     ])
                   ]),
                   el('tbody', {}, reconRows)
@@ -298,13 +317,15 @@ export function renderAdminView(root) {
   async function renderServicesTab() {
     renderLoading(tabBody, 'Cargando servicios extensibles y valorizaciones...');
     try {
-      const [servicesRes, profilesRes] = await Promise.all([
+      const [servicesRes, profilesRes, productsRes] = await Promise.all([
         apiRequest('/api/v1/inventory/services'),
-        apiRequest('/api/v1/clients/profiles')
+        apiRequest('/api/v1/clients/profiles'),
+        apiRequest('/api/v1/inventory/products')
       ]);
 
       const services = servicesRes.data.services || [];
       const profiles = profilesRes.data.profiles || [];
+      const products = productsRes.data.products || [];
       clearNode(tabBody);
 
       const svcFeedback = el('div', { className: 'mt-2' });
@@ -407,12 +428,72 @@ export function renderAdminView(root) {
         }
       });
 
+      const productFeedback = el('div', { className: 'mt-2' });
+      const productCodeIn = el('input', { type: 'text', className: 'form-control form-control-sm', placeholder: 'PROD-011', required: true });
+      const productNameIn = el('input', { type: 'text', className: 'form-control form-control-sm', placeholder: 'Producto de casino', required: true });
+      const productCategoryIn = el('input', { type: 'text', className: 'form-control form-control-sm', placeholder: 'Bebidas', required: true });
+      const productPriceIn = el('input', { type: 'number', className: 'form-control form-control-sm', value: '2500', min: 1, required: true });
+      const productForm = el('form', { className: 'row g-2 align-items-end' }, [
+        el('div', { className: 'col-12 col-md-3' }, [el('label', { className: 'form-label small mb-1', text: 'Código' }), productCodeIn]),
+        el('div', { className: 'col-12 col-md-3' }, [el('label', { className: 'form-label small mb-1', text: 'Producto' }), productNameIn]),
+        el('div', { className: 'col-6 col-md-2' }, [el('label', { className: 'form-label small mb-1', text: 'Categoría' }), productCategoryIn]),
+        el('div', { className: 'col-6 col-md-2' }, [el('label', { className: 'form-label small mb-1', text: 'Precio CLP' }), productPriceIn]),
+        el('div', { className: 'col-12 col-md-2' }, [el('button', { type: 'submit', className: 'btn btn-primary btn-sm w-100', text: 'Agregar producto' })]),
+        el('div', { className: 'col-12' }, [productFeedback])
+      ]);
+      productForm.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        clearNode(productFeedback);
+        try {
+          await apiRequest('/api/v1/inventory/products', {
+            method: 'POST',
+            body: {
+              codigo: productCodeIn.value.trim().toUpperCase(),
+              nombre: productNameIn.value.trim(),
+              categoria: productCategoryIn.value.trim(),
+              precioClp: Number(productPriceIn.value),
+              disponible: true
+            }
+          });
+          showToast('Producto agregado al catálogo del casino', 'success');
+          await renderServicesTab();
+        } catch (err) {
+          renderError(productFeedback, err);
+        }
+      });
+
       const svcRows = services.map((s) =>
         el('tr', {}, [
           el('td', { className: 'font-monospace small', text: s.codigo }),
           el('td', { text: s.nombre }),
           el('td', { className: 'small', text: s.horarios.map((h) => `T${h.numeroTurno}: ${h.horaInicio}-${h.horaFin}`).join(' | ') || 'Solo adicional' }),
           el('td', { className: 'small', text: s.valorizaciones.map((v) => `${v.perfilCodigo}: ${formatClp(v.valorClp)}`).join(' · ') })
+        ])
+      );
+      const productRows = products.map((product) =>
+        el('tr', {}, [
+          el('td', { className: 'font-monospace small', text: product.codigo }),
+          el('td', { text: product.nombre }),
+          el('td', { className: 'small', text: product.categoria }),
+          el('td', { className: 'fw-semibold', text: formatClp(product.precioClp) }),
+          el('td', {}, [statusBadge(product.disponible ? 'DISPONIBLE' : 'AGOTADO')]),
+          el('td', {}, [el('button', {
+            type: 'button',
+            className: `btn btn-sm ${product.disponible ? 'btn-outline-danger' : 'btn-outline-success'}`,
+            text: product.disponible ? 'Marcar agotado' : 'Reponer',
+            onClick: async () => {
+              try {
+                await apiRequest(`/api/v1/inventory/products/${product.id}`, {
+                  method: 'PUT',
+                  body: { disponible: !product.disponible }
+                });
+                showToast(`Disponibilidad de ${product.nombre} actualizada`, 'success');
+                await renderServicesTab();
+              } catch (err) {
+                showToast(err.message, 'error');
+              }
+            }
+          })])
         ])
       );
 
@@ -444,6 +525,23 @@ export function renderAdminView(root) {
                     ])
                   ]),
                   el('tbody', {}, svcRows)
+                ])
+              ])
+            ])
+          ]),
+          el('div', { className: 'col-12' }, [
+            el('div', { className: 'panel-card' }, [
+              el('h3', { className: 'panel-title mb-3', text: 'Productos y disponibilidad del casino (RF12)' }),
+              productForm,
+              el('div', { className: 'table-responsive mt-3' }, [
+                el('table', { className: 'table table-sm align-middle mb-0' }, [
+                  el('thead', { className: 'table-light' }, [el('tr', {}, [
+                    el('th', { text: 'Código' }), el('th', { text: 'Producto' }), el('th', { text: 'Categoría' }),
+                    el('th', { text: 'Precio' }), el('th', { text: 'Estado' }), el('th', { text: 'Acción' })
+                  ])]),
+                  products.length > 0
+                    ? el('tbody', {}, productRows)
+                    : el('tbody', {}, [el('tr', {}, [el('td', { attrs: { colspan: 6 }, className: 'text-center text-muted', text: 'No hay productos registrados.' })])])
                 ])
               ])
             ])
@@ -512,6 +610,66 @@ export function renderAdminView(root) {
         }
       });
 
+      const employeeFeedback = el('div', { className: 'mt-2' });
+      const employeeCodeIn = el('input', { type: 'text', className: 'form-control form-control-sm', placeholder: 'EMP004', required: true });
+      const employeeRutIn = el('input', { type: 'text', className: 'form-control form-control-sm', placeholder: '12345678-9', required: true });
+      const employeeNameIn = el('input', { type: 'text', className: 'form-control form-control-sm', placeholder: 'Nombre funcionario', required: true });
+      const employeeEmailIn = el('input', { type: 'email', className: 'form-control form-control-sm', placeholder: 'funcionario@example.test', required: true });
+      const employeePasswordIn = el('input', { type: 'password', className: 'form-control form-control-sm', attrs: { autocomplete: 'new-password', minlength: '10' }, required: true });
+      const employeeRoleSel = el('select', { className: 'form-select form-select-sm' }, [
+        el('option', { value: 'FUNCIONARIO', text: 'Funcionario' }),
+        el('option', { value: 'CAJERO', text: 'Cajero' }),
+        el('option', { value: 'ADMINISTRADOR', text: 'Administrador' })
+      ]);
+      const employeeProfileSel = el('select', { className: 'form-select form-select-sm' },
+        profiles.filter((profile) => profile.activo).map((profile) => el('option', { value: profile.codigo, text: `${profile.nombre} (${profile.codigo})` }))
+      );
+      const employeeBranchSel = el('select', { className: 'form-select form-select-sm' },
+        branches.filter((branch) => branch.activa !== false).map((branch) => el('option', { value: branch.codigo, text: `${branch.nombre} (${branch.codigo})` }))
+      );
+      const employeeShiftSel = el('select', { className: 'form-select form-select-sm' }, [
+        el('option', { value: '1', text: 'Turno 1 (08:00-16:00)' }),
+        el('option', { value: '2', text: 'Turno 2 (16:00-24:00)' }),
+        el('option', { value: '3', text: 'Turno 3 (00:00-08:00)' })
+      ]);
+      const employeeForm = el('form', { className: 'row g-2 align-items-end' }, [
+        el('div', { className: 'col-12 col-md-3' }, [el('label', { className: 'form-label small mb-1', text: 'Código funcionario' }), employeeCodeIn]),
+        el('div', { className: 'col-12 col-md-3' }, [el('label', { className: 'form-label small mb-1', text: 'RUT de prueba' }), employeeRutIn]),
+        el('div', { className: 'col-12 col-md-6' }, [el('label', { className: 'form-label small mb-1', text: 'Nombre completo' }), employeeNameIn]),
+        el('div', { className: 'col-12 col-md-4' }, [el('label', { className: 'form-label small mb-1', text: 'Correo de prueba' }), employeeEmailIn]),
+        el('div', { className: 'col-12 col-md-4' }, [el('label', { className: 'form-label small mb-1', text: 'Perfil comensal' }), employeeProfileSel]),
+        el('div', { className: 'col-12 col-md-4' }, [el('label', { className: 'form-label small mb-1', text: 'Rol del sistema' }), employeeRoleSel]),
+        el('div', { className: 'col-12 col-md-4' }, [el('label', { className: 'form-label small mb-1', text: 'Sucursal base' }), employeeBranchSel]),
+        el('div', { className: 'col-12 col-md-4' }, [el('label', { className: 'form-label small mb-1', text: 'Turno mensual inicial' }), employeeShiftSel]),
+        el('div', { className: 'col-12 col-md-4' }, [el('label', { className: 'form-label small mb-1', text: 'Contraseña inicial (mín. 10)' }), employeePasswordIn]),
+        el('div', { className: 'col-12' }, [el('button', { type: 'submit', className: 'btn btn-primary btn-sm', text: 'Crear funcionario y acceso' })]),
+        el('div', { className: 'col-12' }, [employeeFeedback])
+      ]);
+      employeeForm.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        clearNode(employeeFeedback);
+        try {
+          const { data } = await apiRequest('/api/v1/clients/employees', {
+            method: 'POST',
+            body: {
+              codigoFuncionario: employeeCodeIn.value.trim().toUpperCase(),
+              rut: employeeRutIn.value.trim(),
+              nombreCompleto: employeeNameIn.value.trim(),
+              email: employeeEmailIn.value.trim(),
+              role: employeeRoleSel.value,
+              perfilCodigo: employeeProfileSel.value,
+              sucursalCodigo: employeeBranchSel.value,
+              numeroTurno: Number(employeeShiftSel.value),
+              password: employeePasswordIn.value
+            }
+          });
+          showToast(`Acceso creado para ${data.employee.codigoFuncionario}`, 'success');
+          await renderProfilesTab();
+        } catch (err) {
+          renderError(employeeFeedback, err);
+        }
+      });
+
       // Reasignacion de turno mensual
       const shiftFeedback = el('div', { className: 'mt-2' });
       const empSel = el(
@@ -562,8 +720,8 @@ export function renderAdminView(root) {
         el('tr', {}, [
           el('td', { className: 'font-monospace small', text: e.codigoFuncionario }),
           el('td', { text: e.nombreCompleto }),
-          el('td', { className: 'small', text: `${e.perfil.nombre} ${e.perfil.permiteMultiVale ? '(Multi-vale)' : ''}` }),
-          el('td', { className: 'small', text: e.turnoActual ? `Turno ${e.turnoActual.numeroTurno} · ${e.turnoActual.sucursalAsignadaCodigo}` : 'Sin turno' })
+          el('td', { className: 'small', text: `${e.perfilNombre} ${e.permiteMultiVale ? '(Multi-vale)' : ''}` }),
+          el('td', { className: 'small', text: e.numeroTurno ? `Turno ${e.numeroTurno} · ${e.sucursalAsignadaCodigo}` : 'Sin turno' })
         ])
       );
 
@@ -579,6 +737,13 @@ export function renderAdminView(root) {
             el('div', { className: 'panel-card' }, [
               el('h3', { className: 'panel-title mb-3', text: 'Asignacion Mensual de Turno y Sucursal' }),
               shiftForm
+            ])
+          ]),
+          el('div', { className: 'col-12' }, [
+            el('div', { className: 'panel-card' }, [
+              el('h3', { className: 'panel-title mb-2', text: 'Registrar funcionario y credenciales (CU1 / RF1)' }),
+              el('p', { className: 'small text-muted', text: 'El backend guarda un hash adaptativo de la contraseña; este formulario solo se usa en una estación administrativa autorizada.' }),
+              employeeForm
             ])
           ]),
           el('div', { className: 'col-12' }, [

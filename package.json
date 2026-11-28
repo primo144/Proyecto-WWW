@@ -1,37 +1,18 @@
 {
-  "name": "libros-impresos-vales-monorepo",
-  "version": "1.0.0",
+  "name": "libros-impresos-entrega-2-tests",
+  "version": "2.0.0",
   "private": true,
   "description": "Caso 18 - Sistema de Emision y Control de Vales de Alimentacion (Libros Impresos S.A.)",
   "engines": {
     "node": ">=20.0.0"
   },
-  "workspaces": [
-    "shared",
-    "auth-service",
-    "services/clients",
-    "services/inventory",
-    "services/orders",
-    "services/payments",
-    "graphql-gateway",
-    "gateway",
-    "db",
-    "tests"
-  ],
   "scripts": {
     "prototype": "node frontend/prototipo/server.mjs",
     "test:prototype": "node tests/prototype/eval1-responsive.mjs",
-    "prisma:generate": "npm --workspace=auth-service run prisma:generate && npm --workspace=@libros/clients-service run prisma:generate && npm --workspace=@libros/inventory-service run prisma:generate && npm --workspace=@libros/orders-service run prisma:generate && npm --workspace=@libros/payments-service run prisma:generate",
-    "prisma:validate": "npm --workspace=auth-service run prisma:validate && npm --workspace=@libros/clients-service run prisma:validate && npm --workspace=@libros/inventory-service run prisma:validate && npm --workspace=@libros/orders-service run prisma:validate && npm --workspace=@libros/payments-service run prisma:validate",
-    "build": "npm --workspace=@libros/shared run build && npm --workspace=auth-service run build && npm --workspace=@libros/clients-service run build && npm --workspace=@libros/inventory-service run build && npm --workspace=@libros/orders-service run build && npm --workspace=@libros/payments-service run build && npm --workspace=@libros/graphql-gateway run build && npm --workspace=@libros/gateway run build && npm --workspace=@libros/db run build",
-    "typecheck": "npm --workspace=@libros/shared run typecheck && npm --workspace=auth-service run typecheck && npm --workspace=@libros/clients-service run typecheck && npm --workspace=@libros/inventory-service run typecheck && npm --workspace=@libros/orders-service run typecheck && npm --workspace=@libros/payments-service run typecheck && npm --workspace=@libros/graphql-gateway run typecheck && npm --workspace=@libros/gateway run typecheck && npm --workspace=@libros/db run typecheck && npm --workspace=@libros/tests run typecheck",
-    "seed": "npm --workspace=@libros/db run seed",
-    "reset-db": "npm --workspace=@libros/db run reset-db",
-    "test:e2e": "npm --workspace=@libros/tests run test:e2e",
-    "test:security": "npm --workspace=@libros/tests run test:security",
-    "test:resilience": "npm --workspace=@libros/tests run test:resilience",
-    "test:load": "npm --workspace=@libros/tests run test:load",
-    "test:cycle": "npm --workspace=@libros/tests run test:cycle"
+    "test:oracle": "node tests/oracle/entrega2-smoke.mjs",
+    "test:oracle:ui": "node tests/oracle/admin-ui-smoke.mjs",
+    "build:backend": "dotnet build backend/LibrosBackend.slnx",
+    "reset:oracle": "docker compose --profile tools run --build --rm db-reset"
   },
   "devDependencies": {
     "playwright-core": "^1.65.1"

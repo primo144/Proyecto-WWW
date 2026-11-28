@@ -1,298 +1,280 @@
+x-backend: &backend
+  image: libros-vales-dotnet:local
+  build:
+    context: .
+    dockerfile: backend/Libros.Api/Dockerfile
+  init: true
+  restart: unless-stopped
+  networks:
+    - private_net
+
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: libros_postgres
+  oracle:
+    image: gvenzl/oracle-free:23-slim-faststart
+    container_name: libros_oracle
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-libros_impresos_db}
-      POSTGRES_USER: ${POSTGRES_USER:-libros_app}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}
+      ORACLE_PASSWORD: ${ORACLE_SYSTEM_PASSWORD:-CHANGE_ME_Oracle2026!}
     volumes:
-      - pg_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - oracle_data:/opt/oracle/oradata
+      - ./db/oracle/01-create-users.sql:/container-entrypoint-initdb.d/01-create-users.sql:ro
     networks:
       - private_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-libros_app} -d ${POSTGRES_DB:-libros_impresos_db}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
     restart: unless-stopped
 
   db-seed:
-    build:
-      context: .
-      dockerfile: db/Dockerfile
-    container_name: libros_db_seed
+    <<: *backend
+    container_name: libros_oracle_seed
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ${POSTGRES_DB:-libros_impresos_db}
-      POSTGRES_USER: ${POSTGRES_USER:-libros_app}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}
-      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
+      SERVICE_KIND: SEED
+      SEED_AUTH_CONNECTION: "User Id=AUTH_SVC;Password=${AUTH_DB_PASSWORD:-CHANGE_ME_Auth2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
+      SEED_CLIENTS_CONNECTION: "User Id=CLIENTS_SVC;Password=${CLIENTS_DB_PASSWORD:-CHANGE_ME_Clients2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
+      SEED_INVENTORY_CONNECTION: "User Id=INVENTORY_SVC;Password=${INVENTORY_DB_PASSWORD:-CHANGE_ME_Inventory2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
     depends_on:
-      postgres:
+      oracle:
         condition: service_healthy
-    networks:
-      - private_net
     restart: "no"
 
-  db-tools:
-    build:
-      context: .
-      dockerfile: db/Dockerfile
+  db-reset:
+    <<: *backend
+    container_name: libros_oracle_reset
     profiles: ["tools"]
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ${POSTGRES_DB:-libros_impresos_db}
-      POSTGRES_USER: ${POSTGRES_USER:-libros_app}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}
-      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
+      SERVICE_KIND: RESET
+      SEED_AUTH_CONNECTION: "User Id=AUTH_SVC;Password=${AUTH_DB_PASSWORD:-CHANGE_ME_Auth2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
+      SEED_CLIENTS_CONNECTION: "User Id=CLIENTS_SVC;Password=${CLIENTS_DB_PASSWORD:-CHANGE_ME_Clients2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
+      SEED_INVENTORY_CONNECTION: "User Id=INVENTORY_SVC;Password=${INVENTORY_DB_PASSWORD:-CHANGE_ME_Inventory2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
+      SEED_ORDERS_CONNECTION: "User Id=ORDERS_SVC;Password=${ORDERS_DB_PASSWORD:-CHANGE_ME_Orders2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
+      SEED_PAYMENTS_CONNECTION: "User Id=PAYMENTS_SVC;Password=${PAYMENTS_DB_PASSWORD:-CHANGE_ME_Payments2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
     depends_on:
-      postgres:
+      oracle:
         condition: service_healthy
-    networks:
-      - private_net
     restart: "no"
 
   auth-service:
-    build:
-      context: .
-      dockerfile: auth-service/Dockerfile
+    <<: *backend
     container_name: libros_auth_service
     environment:
-      PORT: 4001
-      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=auth
+      SERVICE_KIND: AUTH
+      ASPNETCORE_URLS: http://+:4001
+      ORACLE_CONNECTION_STRING: "User Id=AUTH_SVC;Password=${AUTH_DB_PASSWORD:-CHANGE_ME_Auth2026!};Data Source=oracle:1521/FREEPDB1;Pooling=true;Min Pool Size=1;Max Pool Size=20;Connection Timeout=15"
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN_AUTH:-CHANGE_ME_INTERNAL_TOKEN_AUTH}
       JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_JWT_ACCESS_SECRET_MIN_32_CHARS}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-CHANGE_ME_JWT_REFRESH_SECRET_MIN_32_CHARS}
-      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      INTERNAL_TOKEN_AUTH: ${INTERNAL_TOKEN_AUTH:-CHANGE_ME_INTERNAL_TOKEN_AUTH}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
-      postgres:
-        condition: service_healthy
       db-seed:
         condition: service_completed_successfully
-    networks:
-      - private_net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4001/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://127.0.0.1:4001/health > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 8
+      start_period: 15s
 
-  clients:
-    build:
-      context: .
-      dockerfile: services/clients/Dockerfile
+  clients-service:
+    <<: *backend
     container_name: libros_clients_service
     environment:
-      PORT: 4002
-      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=clients
-      INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
-      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SERVICE_KIND: CLIENTS
+      ASPNETCORE_URLS: http://+:4002
+      ORACLE_CONNECTION_STRING: "User Id=CLIENTS_SVC;Password=${CLIENTS_DB_PASSWORD:-CHANGE_ME_Clients2026!};Data Source=oracle:1521/FREEPDB1;Pooling=true;Min Pool Size=1;Max Pool Size=20;Connection Timeout=15"
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
+      SERVICE_AUTH_URL: http://auth-service:4001
+      INTERNAL_TOKEN_AUTH: ${INTERNAL_TOKEN_AUTH:-CHANGE_ME_INTERNAL_TOKEN_AUTH}
     depends_on:
-      postgres:
-        condition: service_healthy
       db-seed:
         condition: service_completed_successfully
-    networks:
-      - private_net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4002/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://127.0.0.1:4002/health > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 8
+      start_period: 15s
 
-  inventory:
-    build:
-      context: .
-      dockerfile: services/inventory/Dockerfile
+  inventory-service:
+    <<: *backend
     container_name: libros_inventory_service
     environment:
-      PORT: 4003
-      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=inventory
-      INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SERVICE_KIND: INVENTORY
+      ASPNETCORE_URLS: http://+:4003
+      ORACLE_CONNECTION_STRING: "User Id=INVENTORY_SVC;Password=${INVENTORY_DB_PASSWORD:-CHANGE_ME_Inventory2026!};Data Source=oracle:1521/FREEPDB1;Pooling=true;Min Pool Size=1;Max Pool Size=20;Connection Timeout=15"
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
     depends_on:
-      postgres:
-        condition: service_healthy
       db-seed:
         condition: service_completed_successfully
-    networks:
-      - private_net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4003/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://127.0.0.1:4003/health > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 8
+      start_period: 15s
 
-  orders:
-    build:
-      context: .
-      dockerfile: services/orders/Dockerfile
-    container_name: libros_orders_service
-    environment:
-      PORT: 4004
-      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=orders
-      INTERNAL_TOKEN_ORDERS: ${INTERNAL_TOKEN_ORDERS:-CHANGE_ME_INTERNAL_TOKEN_ORDERS}
-      INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
-      INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
-      INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
-      CLIENTS_SERVICE_URL: http://clients:4002
-      INVENTORY_SERVICE_URL: http://inventory:4003
-      PAYMENTS_SERVICE_URL: http://payments:4005
-      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-4000}
-      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      db-seed:
-        condition: service_completed_successfully
-      clients:
-        condition: service_healthy
-      inventory:
-        condition: service_healthy
-    networks:
-      - private_net
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4004/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-  payments:
-    build:
-      context: .
-      dockerfile: services/payments/Dockerfile
+  payments-service:
+    <<: *backend
     container_name: libros_payments_service
     environment:
-      PORT: 4005
-      DATABASE_URL: postgresql://${POSTGRES_USER:-libros_app}:${POSTGRES_PASSWORD:-CHANGE_ME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-libros_impresos_db}?schema=payments
-      INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
+      SERVICE_KIND: PAYMENTS
+      ASPNETCORE_URLS: http://+:4005
+      ORACLE_CONNECTION_STRING: "User Id=PAYMENTS_SVC;Password=${PAYMENTS_DB_PASSWORD:-CHANGE_ME_Payments2026!};Data Source=oracle:1521/FREEPDB1;Pooling=true;Min Pool Size=1;Max Pool Size=20;Connection Timeout=15"
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
       EMAIL_PROVIDER_MODE: ${EMAIL_PROVIDER_MODE:-sandbox}
-      EMAIL_API_KEY: ${EMAIL_API_KEY:-CHANGE_ME_SANDBOX_EMAIL_KEY}
+      EMAIL_API_URL: ${EMAIL_API_URL:-}
+      EMAIL_API_KEY: ${EMAIL_API_KEY:-}
+      WEEKLY_NOTICES_ENABLED: ${WEEKLY_NOTICES_ENABLED:-true}
+      WEEKLY_NOTICES_TIME: ${WEEKLY_NOTICES_TIME:-01:00}
       APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
-      postgres:
-        condition: service_healthy
       db-seed:
         condition: service_completed_successfully
-    networks:
-      - private_net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4005/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://127.0.0.1:4005/health > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 8
+      start_period: 15s
+
+  orders-service:
+    <<: *backend
+    container_name: libros_orders_service
+    environment:
+      SERVICE_KIND: ORDERS
+      ASPNETCORE_URLS: http://+:4004
+      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Production}
+      APP_TEST_NOW_SANTIAGO: ${APP_TEST_NOW_SANTIAGO:-}
+      ORACLE_CONNECTION_STRING: "User Id=ORDERS_SVC;Password=${ORDERS_DB_PASSWORD:-CHANGE_ME_Orders2026!};Data Source=oracle:1521/FREEPDB1;Pooling=true;Min Pool Size=1;Max Pool Size=30;Connection Timeout=15"
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN_ORDERS:-CHANGE_ME_INTERNAL_TOKEN_ORDERS}
+      SERVICE_CLIENTS_URL: http://clients-service:4002
+      SERVICE_INVENTORY_URL: http://inventory-service:4003
+      SERVICE_PAYMENTS_URL: http://payments-service:4005
+      INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
+      INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
+      INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-4000}
+    depends_on:
+      db-seed:
+        condition: service_completed_successfully
+      clients-service:
+        condition: service_healthy
+      inventory-service:
+        condition: service_healthy
+      payments-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://127.0.0.1:4004/health > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 15s
 
   graphql-gateway:
-    build:
-      context: .
-      dockerfile: graphql-gateway/Dockerfile
+    <<: *backend
     container_name: libros_graphql_gateway
     environment:
-      PORT: 4006
-      INTERNAL_TOKEN_GRAPHQL: ${INTERNAL_TOKEN_GRAPHQL:-CHANGE_ME_INTERNAL_TOKEN_GRAPHQL}
+      SERVICE_KIND: GRAPHQL
+      ASPNETCORE_URLS: http://+:4006
+      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Production}
+      APP_TEST_NOW_SANTIAGO: ${APP_TEST_NOW_SANTIAGO:-}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN_GRAPHQL:-CHANGE_ME_INTERNAL_TOKEN_GRAPHQL}
+      SERVICE_CLIENTS_URL: http://clients-service:4002
+      SERVICE_INVENTORY_URL: http://inventory-service:4003
+      SERVICE_ORDERS_URL: http://orders-service:4004
+      SERVICE_PAYMENTS_URL: http://payments-service:4005
       INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
       INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
       INTERNAL_TOKEN_ORDERS: ${INTERNAL_TOKEN_ORDERS:-CHANGE_ME_INTERNAL_TOKEN_ORDERS}
       INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
-      CLIENTS_SERVICE_URL: http://clients:4002
-      INVENTORY_SERVICE_URL: http://inventory:4003
-      ORDERS_SERVICE_URL: http://orders:4004
-      PAYMENTS_SERVICE_URL: http://payments:4005
       UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-4000}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Santiago}
     depends_on:
-      clients:
+      clients-service:
         condition: service_healthy
-      inventory:
+      inventory-service:
         condition: service_healthy
-      orders:
+      orders-service:
         condition: service_healthy
-    networks:
-      - private_net
+      payments-service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4006/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://127.0.0.1:4006/health > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 8
+      start_period: 15s
 
   gateway:
-    build:
-      context: .
-      dockerfile: gateway/Dockerfile
+    <<: *backend
     container_name: libros_api_gateway
-    ports:
-      - "8080:8080"
     environment:
-      PORT: 8080
+      SERVICE_KIND: GATEWAY
+      ASPNETCORE_URLS: http://+:8080
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-60}
       RATE_LIMIT_API_MAX: ${RATE_LIMIT_API_MAX:-600}
       UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-4000}
-      AUTH_SERVICE_URL: http://auth-service:4001
-      CLIENTS_SERVICE_URL: http://clients:4002
-      INVENTORY_SERVICE_URL: http://inventory:4003
-      ORDERS_SERVICE_URL: http://orders:4004
-      PAYMENTS_SERVICE_URL: http://payments:4005
-      GRAPHQL_GATEWAY_URL: http://graphql-gateway:4006
+      SERVICE_AUTH_URL: http://auth-service:4001
+      SERVICE_CLIENTS_URL: http://clients-service:4002
+      SERVICE_INVENTORY_URL: http://inventory-service:4003
+      SERVICE_ORDERS_URL: http://orders-service:4004
+      SERVICE_PAYMENTS_URL: http://payments-service:4005
+      SERVICE_GRAPHQL_URL: http://graphql-gateway:4006
       INTERNAL_TOKEN_AUTH: ${INTERNAL_TOKEN_AUTH:-CHANGE_ME_INTERNAL_TOKEN_AUTH}
       INTERNAL_TOKEN_CLIENTS: ${INTERNAL_TOKEN_CLIENTS:-CHANGE_ME_INTERNAL_TOKEN_CLIENTS}
       INTERNAL_TOKEN_INVENTORY: ${INTERNAL_TOKEN_INVENTORY:-CHANGE_ME_INTERNAL_TOKEN_INVENTORY}
       INTERNAL_TOKEN_ORDERS: ${INTERNAL_TOKEN_ORDERS:-CHANGE_ME_INTERNAL_TOKEN_ORDERS}
       INTERNAL_TOKEN_PAYMENTS: ${INTERNAL_TOKEN_PAYMENTS:-CHANGE_ME_INTERNAL_TOKEN_PAYMENTS}
       INTERNAL_TOKEN_GRAPHQL: ${INTERNAL_TOKEN_GRAPHQL:-CHANGE_ME_INTERNAL_TOKEN_GRAPHQL}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-    depends_on:
-      auth-service:
-        condition: service_healthy
-      clients:
-        condition: service_healthy
-      inventory:
-        condition: service_healthy
-      orders:
-        condition: service_healthy
-      graphql-gateway:
-        condition: service_healthy
+    ports:
+      - "8080:8080"
     networks:
       - public_net
       - private_net
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      clients-service:
+        condition: service_healthy
+      inventory-service:
+        condition: service_healthy
+      orders-service:
+        condition: service_healthy
+      payments-service:
+        condition: service_healthy
+      graphql-gateway:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 http://127.0.0.1:8080/health > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 10
+      start_period: 20s
 
   frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
+    image: nginx:1.27-alpine
     container_name: libros_frontend
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/index.html:/usr/share/nginx/html/index.html:ro
+      - ./frontend/css:/usr/share/nginx/html/css:ro
+      - ./frontend/js:/usr/share/nginx/html/js:ro
     ports:
       - "3000:80"
+    networks:
+      - public_net
     depends_on:
       gateway:
         condition: service_healthy
-    networks:
-      - public_net
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  pg_data:
+  oracle_data:
 
 networks:
   public_net:

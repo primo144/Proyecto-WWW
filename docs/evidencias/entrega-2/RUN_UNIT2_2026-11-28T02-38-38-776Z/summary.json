@@ -1,0 +1,200 @@
+{
+  "runId": "RUN_UNIT2_2026-11-28T02-38-38-776Z",
+  "generatedAt": "2026-11-28T02:38:40.746Z",
+  "gateway": "http://localhost:8080",
+  "environment": "Testing",
+  "clockOverride": "2026-11-27T21:00:00-03:00",
+  "passed": 21,
+  "failed": 0,
+  "items": [
+    {
+      "id": "P00",
+      "title": "Gateway health",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "bdd5863f-127d-4cad-b91b-deb2115413d5",
+      "durationMs": 48,
+      "service": "api-gateway"
+    },
+    {
+      "id": "P01",
+      "title": "Anonymous catalog query backed by Oracle",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "02937bdd-2f4d-4eb5-a7f6-c6db84673922",
+      "durationMs": 8,
+      "rows": 5
+    },
+    {
+      "id": "P02",
+      "title": "Anonymous access is rejected",
+      "result": "PASSED",
+      "httpStatus": 401,
+      "correlationId": "b21ff999-a7fd-4d78-9e11-ad04b27520e6",
+      "durationMs": 6
+    },
+    {
+      "id": "P03",
+      "title": "PBKDF2 login and persistent session",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "b59a2c19-c7b5-4947-8838-cd85a4a50365",
+      "durationMs": 94,
+      "account": "EMP001",
+      "role": "FUNCIONARIO"
+    },
+    {
+      "id": "P04",
+      "title": "Authorized employee reads own profile",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "d3417e59-f79a-4b0f-8347-a2526e6258f3",
+      "durationMs": 17
+    },
+    {
+      "id": "P05",
+      "title": "Cross-employee IDOR is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "3ed39fa6-641f-4822-81e3-cae429f44ee1",
+      "durationMs": 14
+    },
+    {
+      "id": "P06",
+      "title": "Non-admin audit access is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "f4175002-fb04-4e9d-9123-3e0a3d731447",
+      "durationMs": 23
+    },
+    {
+      "id": "P07",
+      "title": "GraphQL summary aggregates clients, inventory, orders and payments",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "051bfddf-2d7d-4208-8727-9256f1f8cfe8",
+      "durationMs": 710,
+      "serviceRows": 2,
+      "branches": 2,
+      "partialErrors": 0
+    },
+    {
+      "id": "P08",
+      "title": "GraphQL depth limit rejects a depth-five query",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "e61b9748-007e-4b35-a307-b330f9693887",
+      "durationMs": 17
+    },
+    {
+      "id": "P09",
+      "title": "GraphQL alias and complexity limits reject abuse",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "b1c54270-a9a2-45d4-b1ff-337f5f90d1a2",
+      "durationMs": 11
+    },
+    {
+      "id": "P10",
+      "title": "Clients service creates a profile",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "0cbd8bcc-6e98-4960-9db9-6a0568d5794c",
+      "durationMs": 6,
+      "profileCode": "TEST_PROFILE_MWZSWS50"
+    },
+    {
+      "id": "P11",
+      "title": "Clients and Auth services create a linked employee login",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "4cfe1b5b-d535-4927-a174-c4ffb5756084",
+      "durationMs": 76,
+      "account": "TESTZSWS50"
+    },
+    {
+      "id": "P12",
+      "title": "Inventory creates and updates authoritative product availability",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "b246e530-ebd0-49e7-a2f0-99822cba6dac",
+      "durationMs": 14,
+      "productCode": "TEST_MWZSWS50"
+    },
+    {
+      "id": "P13",
+      "title": "Inventory creates an extensible service, schedule and valuation",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "851dfcce-88f5-460b-b412-d29bf3f6f240",
+      "durationMs": 32,
+      "serviceCode": "TEST_SERVICE_MWZSWS50"
+    },
+    {
+      "id": "P14",
+      "title": "Clients updates monthly shift and branch assignment",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "af57a8cb-2e32-4c3f-90b0-1a1c2d7700aa",
+      "durationMs": 7,
+      "shift": 2,
+      "branch": "NORTE"
+    },
+    {
+      "id": "P15",
+      "title": "Normal voucher issue is persisted below RF2 and duplicate is rejected",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "e2a41c43-83df-4d7f-bde7-bb5dbcce8628",
+      "durationMs": 229,
+      "voucherNumber": "VAL-20261127-C3254D",
+      "duplicateStatus": 409
+    },
+    {
+      "id": "P16",
+      "title": "Voucher canje persists a payment computed from inventory and rejects replay",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "a5d83d0a-48d1-45be-b704-9e38af01ab30",
+      "durationMs": 59,
+      "voucherNumber": "VAL-20261127-C3254D",
+      "paymentId": "867fa062-c62c-4084-bd94-bc2fc35ce7f6",
+      "duplicateStatus": 409
+    },
+    {
+      "id": "P17",
+      "title": "Request validation rejects prices supplied by a browser",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "c7c315a8-ef67-43ce-85d5-06263f900586",
+      "durationMs": 10
+    },
+    {
+      "id": "P18",
+      "title": "Oracle stored procedure generates and dispatches sandbox notices",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "4bc03137-4e28-4535-ad64-261c19b15ad2",
+      "durationMs": 25,
+      "totalProcessed": 8,
+      "sandboxDelivered": 8
+    },
+    {
+      "id": "P19",
+      "title": "GraphQL admin audit composes orders and payments",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "212fceac-0b1f-417b-894a-bce0419efcfc",
+      "durationMs": 32,
+      "redeemed": 1
+    },
+    {
+      "id": "P20",
+      "title": "Logout persists session revocation",
+      "result": "PASSED",
+      "httpStatus": 401,
+      "correlationId": "cc57dbc0-1033-4dcc-9965-a5df338ab368",
+      "durationMs": 13
+    }
+  ]
+}

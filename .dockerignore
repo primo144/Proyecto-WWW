@@ -7,3 +7,7 @@ dist
 .git
 docs/evidencias/RUN*
 *.log
+**/bin
+**/obj
+backend/**/bin
+backend/**/obj

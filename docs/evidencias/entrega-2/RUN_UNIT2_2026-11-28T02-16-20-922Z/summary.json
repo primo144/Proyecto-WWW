@@ -1,0 +1,150 @@
+{
+  "runId": "RUN_UNIT2_2026-11-28T02-16-20-922Z",
+  "generatedAt": "2026-11-28T02:16:22.230Z",
+  "gateway": "http://localhost:8080",
+  "environment": "Testing",
+  "clockOverride": "2026-11-27T21:00:00-03:00",
+  "passed": 15,
+  "failed": 1,
+  "items": [
+    {
+      "id": "P00",
+      "title": "Gateway health",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "70681ff0-2435-428e-8442-5841f68aed4d",
+      "durationMs": 47,
+      "service": "api-gateway"
+    },
+    {
+      "id": "P01",
+      "title": "Anonymous catalog query backed by Oracle",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "8fd22acb-c8c0-4889-be2e-20425a706e81",
+      "durationMs": 11,
+      "rows": 5
+    },
+    {
+      "id": "P02",
+      "title": "Anonymous access is rejected",
+      "result": "PASSED",
+      "httpStatus": 401,
+      "correlationId": "6f80e083-c489-45d7-94a4-f50ae013c882",
+      "durationMs": 3
+    },
+    {
+      "id": "P03",
+      "title": "PBKDF2 login and persistent session",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "4f58f104-2f47-4a5d-b8f7-4d7f250d5e73",
+      "durationMs": 74,
+      "account": "EMP001",
+      "role": "FUNCIONARIO"
+    },
+    {
+      "id": "P04",
+      "title": "Authorized employee reads own profile",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "2428642d-096e-4d5a-8f76-7decf3c89d22",
+      "durationMs": 8
+    },
+    {
+      "id": "P05",
+      "title": "Cross-employee IDOR is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "bed3c61d-b9e3-41f8-bb18-448cdb77bf81",
+      "durationMs": 6
+    },
+    {
+      "id": "P06",
+      "title": "Non-admin audit access is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "e97f9dac-cd1e-43ce-a558-b09697c3d3da",
+      "durationMs": 127
+    },
+    {
+      "id": "P07",
+      "title": "GraphQL summary aggregates clients, inventory, orders and payments",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "cf9c6542-40c3-467f-8d57-7d63fd984ad6",
+      "durationMs": 405,
+      "serviceRows": 2,
+      "branches": 2,
+      "partialErrors": 0
+    },
+    {
+      "id": "P08",
+      "title": "GraphQL depth limit rejects a depth-five query",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "d37072d2-83e1-42ac-8004-887878b7f005",
+      "durationMs": 19
+    },
+    {
+      "id": "P09",
+      "title": "GraphQL alias and complexity limits reject abuse",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "55b466df-e0b0-4881-b703-38ff768d0fca",
+      "durationMs": 16
+    },
+    {
+      "id": "P10",
+      "title": "Clients service creates a profile",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "7a37e245-df2b-4bfa-a13f-de6abf7c1fd2",
+      "durationMs": 25,
+      "profileCode": "TEST_PROFILE_MWZS43O0"
+    },
+    {
+      "id": "P11",
+      "title": "Clients and Auth services create a linked employee login",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "04ab41e7-e930-4bcf-a144-5271b48cf800",
+      "durationMs": 65,
+      "account": "TESTZS43O0"
+    },
+    {
+      "id": "P12",
+      "title": "Inventory creates and updates authoritative product availability",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "c5f67a0f-102e-4a0d-92a1-d3481e98c865",
+      "durationMs": 9,
+      "productCode": "TEST_MWZS43O0"
+    },
+    {
+      "id": "P13",
+      "title": "Inventory creates an extensible service, schedule and valuation",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "735de236-a070-4215-9bf4-b0f0cf998bec",
+      "durationMs": 37,
+      "serviceCode": "TEST_SERVICE_MWZS43O0"
+    },
+    {
+      "id": "P14",
+      "title": "Clients updates monthly shift and branch assignment",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "8e82ed92-8bc8-4ba6-93ea-1253cad4232b",
+      "durationMs": 13,
+      "shift": 2,
+      "branch": "NORTE"
+    },
+    {
+      "id": "P16",
+      "title": "Oracle integration smoke run",
+      "result": "FAILED",
+      "message": "normal voucher issuance during the controlled test clock: expected HTTP 201, observed 422: {\"error\":{\"code\":\"FUERA_DE_HORARIO\",\"message\":\"No hay un servicio de alimentación habilitado para tu turno en este horario.\",\"correlationId\":\"f9f9e7c7-7dab-41a3-a078-581d095358ca\"}}\n\n422 !== 201\n"
+    }
+  ]
+}

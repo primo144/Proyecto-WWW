@@ -114,7 +114,7 @@ export function renderLoginView(root, onAuthenticated) {
       el('section', { className: 'panel-card' }, [
         el('div', { className: 'panel-card-header' }, [
           el('h2', { className: 'panel-title', text: 'Ingreso al Sistema (CU1)' }),
-          el('span', { className: 'badge bg-secondary', text: 'JWT + Bcrypt' })
+          el('span', { className: 'badge bg-secondary', text: 'JWT + PBKDF2' })
         ]),
         el('p', {
           className: 'small text-muted',
