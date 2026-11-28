@@ -19,7 +19,7 @@ public sealed record VoucherDto(string Id, string NumeroVale, string? Funcionari
     string NombreBeneficiario, string PerfilCodigo, string ServicioCodigo, string ServicioNombre,
     string TipoVale, int NumeroTurno, string FechaVigencia, string HoraInicioPermitida,
     string HoraFinPermitida, int ValorClp, string SucursalEmisionCodigo, string Estado,
-    DateTime EmitidoEn, DateTime? ImpresoEn, string? MotivoAdicional);
+    DateTime EmitidoEn, DateTime? ImpresoEn, DateTime? CanjeadoEn = null, string? MotivoAdicional = null);
 public sealed record IssueVoucherRequest(string? ServicioCodigo, string? SucursalEmisionCodigo, string? NombreBeneficiarioVisita);
 public sealed record AdditionalVoucherRequest(string TipoVale, string? FuncionarioCodigo, string? NombreBeneficiarioVisita,
     string ServicioCodigo, string? SucursalEmisionCodigo, string MotivoAdicional, bool ImprimirInmediato = false);

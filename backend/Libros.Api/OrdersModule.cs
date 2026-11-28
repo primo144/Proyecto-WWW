@@ -197,15 +197,15 @@ public static class OrdersModule
     }
 
     private static async Task<VoucherDto?> FindVoucher(OracleStore db, string predicate, Action<OracleCommand> bind, CancellationToken ct)
-        => await db.OneAsync($"SELECT ID,VOUCHER_NUMBER,EMPLOYEE_ID,EMPLOYEE_CODE,BENEFICIARY_NAME,PROFILE_CODE,SERVICE_CODE,SERVICE_NAME,VOUCHER_TYPE,SHIFT_NUMBER,TO_CHAR(VOUCHER_DATE,'YYYY-MM-DD') VOUCHER_DATE,START_TIME,END_TIME,AMOUNT_CLP,BRANCH_CODE,STATUS,ISSUED_AT,PRINTED_AT,REASON FROM ORDERS_SVC.VOUCHERS WHERE {predicate}", bind, MapVoucher, ct);
+        => await db.OneAsync($"SELECT ID,VOUCHER_NUMBER,EMPLOYEE_ID,EMPLOYEE_CODE,BENEFICIARY_NAME,PROFILE_CODE,SERVICE_CODE,SERVICE_NAME,VOUCHER_TYPE,SHIFT_NUMBER,TO_CHAR(VOUCHER_DATE,'YYYY-MM-DD') VOUCHER_DATE,START_TIME,END_TIME,AMOUNT_CLP,BRANCH_CODE,STATUS,ISSUED_AT,PRINTED_AT,REDEEMED_AT,REASON FROM ORDERS_SVC.VOUCHERS WHERE {predicate}", bind, MapVoucher, ct);
 
     private static async Task<IReadOnlyList<VoucherDto>> FindVouchers(OracleStore db, string predicate, Action<OracleCommand> bind, CancellationToken ct)
-        => await db.ManyAsync($"SELECT ID,VOUCHER_NUMBER,EMPLOYEE_ID,EMPLOYEE_CODE,BENEFICIARY_NAME,PROFILE_CODE,SERVICE_CODE,SERVICE_NAME,VOUCHER_TYPE,SHIFT_NUMBER,TO_CHAR(VOUCHER_DATE,'YYYY-MM-DD') VOUCHER_DATE,START_TIME,END_TIME,AMOUNT_CLP,BRANCH_CODE,STATUS,ISSUED_AT,PRINTED_AT,REASON FROM ORDERS_SVC.VOUCHERS WHERE {predicate} ORDER BY ISSUED_AT DESC FETCH FIRST 200 ROWS ONLY", bind, MapVoucher, ct);
+        => await db.ManyAsync($"SELECT ID,VOUCHER_NUMBER,EMPLOYEE_ID,EMPLOYEE_CODE,BENEFICIARY_NAME,PROFILE_CODE,SERVICE_CODE,SERVICE_NAME,VOUCHER_TYPE,SHIFT_NUMBER,TO_CHAR(VOUCHER_DATE,'YYYY-MM-DD') VOUCHER_DATE,START_TIME,END_TIME,AMOUNT_CLP,BRANCH_CODE,STATUS,ISSUED_AT,PRINTED_AT,REDEEMED_AT,REASON FROM ORDERS_SVC.VOUCHERS WHERE {predicate} ORDER BY ISSUED_AT DESC FETCH FIRST 200 ROWS ONLY", bind, MapVoucher, ct);
 
     private static VoucherDto MapVoucher(OracleDataReader r) => new(OracleStore.Text(r, "ID"), OracleStore.Text(r, "VOUCHER_NUMBER"), OracleStore.NullableText(r, "EMPLOYEE_ID"), OracleStore.NullableText(r, "EMPLOYEE_CODE"),
         OracleStore.Text(r, "BENEFICIARY_NAME"), OracleStore.Text(r, "PROFILE_CODE"), OracleStore.Text(r, "SERVICE_CODE"), OracleStore.Text(r, "SERVICE_NAME"), OracleStore.Text(r, "VOUCHER_TYPE"),
         OracleStore.Int(r, "SHIFT_NUMBER"), OracleStore.Text(r, "VOUCHER_DATE"), OracleStore.Text(r, "START_TIME"), OracleStore.Text(r, "END_TIME"), OracleStore.Int(r, "AMOUNT_CLP"), OracleStore.Text(r, "BRANCH_CODE"), OracleStore.Text(r, "STATUS"),
-        OracleStore.Date(r, "ISSUED_AT"), OracleStore.NullableDate(r, "PRINTED_AT"), OracleStore.NullableText(r, "REASON"));
+        OracleStore.Date(r, "ISSUED_AT"), OracleStore.NullableDate(r, "PRINTED_AT"), OracleStore.NullableDate(r, "REDEEMED_AT"), OracleStore.NullableText(r, "REASON"));
 
     private static VoucherInsert NewVoucher(UserContext issuer, EmployeeDto employee, FoodServiceDto service, ServiceWindowDto window,
         int amount, string branchCode, string type, DateOnly date, string beneficiary, string key, string? reason = null)

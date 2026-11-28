@@ -81,6 +81,7 @@ async function main() {
     miResumenComensal {
       funcionario { codigoFuncionario rut email perfil { codigo permiteMultiVale } turnoActual { numeroTurno } }
       serviciosDelTurno { codigo valorClp habilitadoAhora }
+      valesRecientes { numeroVale impresoEn canjeadoEn }
       sucursales { codigo nombre }
       partialErrors { subsystem code }
     }
