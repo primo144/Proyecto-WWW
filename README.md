@@ -5,12 +5,18 @@ Proyecto integral de la asignatura **Lenguajes de Programacion en WWW**. Impleme
 **Integrantes**
 - Cristobal Barahona 202373545-0
 
+## Entrega 1 — Prototipo y API simulada
+
+El prototipo funcional aislado para la primera evaluación se inicia con `npm run prototype` y se abre en `http://localhost:8081/prototipo-eval1.html`. Incluye identificación de demostración, consulta de servicios, emisión simulada de vale, estados vacío/error y comprobante imprimible. El diseño equivalente local a Figma está en [`docs/prototipos/entrega-1.html`](docs/prototipos/entrega-1.html). La prueba de navegador y las capturas de los cuatro viewports se generan con `npm run test:prototype`; consulta [`docs/ENTREGA_1_FRONTEND.md`](docs/ENTREGA_1_FRONTEND.md).
+
+Esta ruta no necesita API real ni base de datos; mantiene sus datos en memoria y los pierde al detener el servidor. El resto de los componentes heredados del monorepo de origen se conservan para las entregas posteriores.
+
 
 ---
 
 ## 1. Arquitectura y Stack Tecnologico
 
-- **Frontend Responsivo (Evaluacion 1):** HTML5 semantico, **Bootstrap 5.3** (Grid de 12 columnas), CSS3 con **Box Model y Flexbox explicitos** (`frontend/css/styles.css`) y **JavaScript Vanilla ES Modules** con manipulacion real del DOM (`createElement`, `querySelector`, `addEventListener`, estados de carga/exito/vacio/error y cero datos dummy).
+- **Prototipo independiente (Evaluacion 1):** `frontend/prototipo-eval1.html` usa Bootstrap 5.3, CSS responsivo con Grid/Box Model/Flexbox y JavaScript DOM. Sus servicios HTTP locales simulados están en `frontend/prototipo/server.mjs`; no dependen del backend real. La SPA integrada original está en `frontend/index.html`.
 - **API Gateway (`gateway/`, puerto `8080`):** Unico punto de entrada publico. Implementa rate limiting, limpieza de cabeceras internas falsificadas (`sanitizeHeaders`), validacion de JWT contra `auth-service`, inyeccion de contexto verificado (`x-user-id`, `x-user-role`, `x-user-code`), propagacion de `X-Correlation-ID`, timeouts y tolerancia a fallos.
 - **GraphQL Gateway Privado (`graphql-gateway/`, puerto `4006` en `private_net`):** `graphql-yoga` + `DataLoader` para agregaciones multi-subsistema (`miResumenComensal`, `detalleVale`, `panelAuditoria`, `catalogoCasino`), limites de profundidad (`maxDepth=4`) y complejidad (`maxComplexity=500`), autorizacion por campo (`rut`, `email`) y degradacion controlada (`partialErrors`).
 - **Microservicios Privados en `private_net` (Node.js 24 LTS + TypeScript strict + Zod + Pino + Prisma ORM):**

@@ -19,6 +19,8 @@
     "tests"
   ],
   "scripts": {
+    "prototype": "node frontend/prototipo/server.mjs",
+    "test:prototype": "node tests/prototype/eval1-responsive.mjs",
     "prisma:generate": "npm --workspace=auth-service run prisma:generate && npm --workspace=@libros/clients-service run prisma:generate && npm --workspace=@libros/inventory-service run prisma:generate && npm --workspace=@libros/orders-service run prisma:generate && npm --workspace=@libros/payments-service run prisma:generate",
     "prisma:validate": "npm --workspace=auth-service run prisma:validate && npm --workspace=@libros/clients-service run prisma:validate && npm --workspace=@libros/inventory-service run prisma:validate && npm --workspace=@libros/orders-service run prisma:validate && npm --workspace=@libros/payments-service run prisma:validate",
     "build": "npm --workspace=@libros/shared run build && npm --workspace=auth-service run build && npm --workspace=@libros/clients-service run build && npm --workspace=@libros/inventory-service run build && npm --workspace=@libros/orders-service run build && npm --workspace=@libros/payments-service run build && npm --workspace=@libros/graphql-gateway run build && npm --workspace=@libros/gateway run build && npm --workspace=@libros/db run build",
@@ -30,5 +32,8 @@
     "test:resilience": "npm --workspace=@libros/tests run test:resilience",
     "test:load": "npm --workspace=@libros/tests run test:load",
     "test:cycle": "npm --workspace=@libros/tests run test:cycle"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.65.1"
   }
 }

@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-11-28T01:06:04.746Z",
+  "browser": "chrome.exe",
+  "browserVersion": "158.0.8127.37",
+  "method": "Automated browser run with emulated viewport sizes; not physical-device testing.",
+  "total": 4,
+  "passed": 4,
+  "results": [
+    {
+      "viewport": "375x812",
+      "employeeCode": "EMP001",
+      "result": "PASSED",
+      "horizontalOverflow": false,
+      "catalogCards": 3,
+      "voucherReceiptRendered": true,
+      "scenarios": [
+        "consulta normal",
+        "emisión 201",
+        "vale duplicado 409",
+        "catálogo vacío",
+        "error 503 y recuperación disponible"
+      ],
+      "screenshot": "viewport-375x812.png"
+    },
+    {
+      "viewport": "768x1024",
+      "employeeCode": "EMP002",
+      "result": "PASSED",
+      "horizontalOverflow": false,
+      "catalogCards": 3,
+      "voucherReceiptRendered": true,
+      "scenarios": [
+        "consulta normal",
+        "emisión 201"
+      ],
+      "screenshot": "viewport-768x1024.png"
+    },
+    {
+      "viewport": "1024x768",
+      "employeeCode": "EMP003",
+      "result": "PASSED",
+      "horizontalOverflow": false,
+      "catalogCards": 3,
+      "voucherReceiptRendered": true,
+      "scenarios": [
+        "consulta normal",
+        "emisión 201"
+      ],
+      "screenshot": "viewport-1024x768.png"
+    },
+    {
+      "viewport": "1440x900",
+      "employeeCode": "SEC001",
+      "result": "PASSED",
+      "horizontalOverflow": false,
+      "catalogCards": 3,
+      "voucherReceiptRendered": true,
+      "scenarios": [
+        "consulta normal",
+        "emisión 201"
+      ],
+      "screenshot": "viewport-1440x900.png"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diseño de interfaz · Caso 18</title>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color: #182b3b; background: #f4f7f8; }
+    * { box-sizing: border-box; }
+    body { max-width: 1120px; margin: 0 auto; padding: 28px 18px 48px; }
+    h1 { margin-bottom: .3rem; color: #153e59; }
+    .sub { margin-top: 0; color: #617281; }
+    .flow { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 32px; }
+    .flow span { padding: 8px 12px; border-radius: 999px; background: #e8f1f6; font-weight: 650; }
+    .frames { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .frame { padding: 18px; border: 1px solid #dce4e8; border-radius: 16px; background: white; box-shadow: 0 8px 24px #182b3b0e; }
+    .frame header { display: flex; align-items: center; justify-content: space-between; padding: 12px; color: white; background: #153e59; border-radius: 10px; }
+    .frame header strong { font-size: .9rem; }
+    .badge { padding: 4px 9px; border-radius: 99px; color: #153e59; background: #e2a535; font-size: .7rem; }
+    .frame-body { display: grid; grid-template-columns: 1fr; gap: 12px; padding-top: 12px; }
+    .block { min-height: 48px; padding: 12px; border: 1px solid #dce4e8; border-radius: 9px; background: #f8fafb; }
+    .block h2 { margin: 0 0 8px; font-size: .95rem; }
+    .block small { color: #617281; }
+    .services { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .service { min-height: 68px; border-color: #aacbb9; background: #f4fbf7; }
+    .service b, .service small { display: block; }
+    .receipt { border-style: dashed; background: #fffdf7; }
+    .action { display: inline-block; margin-top: 8px; padding: 8px 12px; border-radius: 7px; color: white; background: #153e59; }
+    .design-note { margin-top: 28px; padding: 16px; border-left: 4px solid #e2a535; background: #fff9e9; }
+    @media (min-width: 576px) { body { padding-inline: 28px; } .services { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 992px) { .frames { grid-template-columns: 1fr 1fr; } .frame.desktop { grid-column: 1 / -1; } .frame.desktop .frame-body { grid-template-columns: 7fr 5fr; } .frame.desktop .services { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media print { body { background: white; } .frame { box-shadow: none; break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <p><a href="../../frontend/prototipo-eval1.html">Abrir el prototipo funcional →</a></p>
+  <h1>Emisión de vales · propuesta de interfaz</h1>
+  <p class="sub">Caso 18 · actor: funcionario de planta · prioridad: identificar rápidamente el servicio y obtener un comprobante legible.</p>
+  <nav class="flow" aria-label="Flujo previsto"><span>1. Identificación</span><span>→</span><span>2. Servicios del turno</span><span>→</span><span>3. Comprobante</span></nav>
+  <main class="frames">
+    <section class="frame" aria-label="Frame móvil"><header><strong>LI · Emisión de vales</strong><span class="badge">MÓVIL · 375 px</span></header><div class="frame-body"><div class="block"><h2>Identificación</h2><small>Código funcionario · botón ancho completo</small><span class="action">Consultar servicios</span></div><div class="block"><h2>Servicios del turno</h2><div class="services"><div class="block service"><b>Almuerzo · $6.500</b><small>11:30–14:30</small></div><div class="block service"><b>Desayuno · $3.500</b><small>08:00–10:00</small></div></div></div><div class="block receipt"><h2>Vale emitido</h2><small>Folio · servicio · valor · horario</small></div></div></section>
+    <section class="frame" aria-label="Frame tablet"><header><strong>LI · Emisión de vales</strong><span class="badge">TABLET · 768 px</span></header><div class="frame-body"><div class="block"><h2>Identificación</h2><small>Código y acción en una fila · contenido con márgenes amplios</small></div><div class="block"><h2>Servicios del turno</h2><div class="services"><div class="block service"><b>Almuerzo · $6.500</b><small>11:30–14:30</small></div><div class="block service"><b>Desayuno · $3.500</b><small>08:00–10:00</small></div></div></div><div class="block receipt"><h2>Comprobante imprimible</h2><small>Folio y datos operacionales · panel bajo el catálogo</small></div></div></section>
+    <section class="frame desktop" aria-label="Frame escritorio"><header><strong>Libros Impresos · Sistema de alimentación</strong><span class="badge">ESCRITORIO · 1440 px</span></header><div class="frame-body"><div class="block"><h2>Identificación → Servicios de tu turno</h2><div class="services"><div class="block service"><b>Desayuno</b><small>$3.500 · 08:00–10:00</small></div><div class="block service"><b>Almuerzo</b><small>$6.500 · 11:30–14:30</small></div><div class="block service"><b>Once</b><small>$4.500 · 16:00–18:00</small></div></div></div><div class="block receipt"><h2>Comprobante</h2><small>Vale térmico centrado · acción de impresión</small><span class="action">Imprimir</span></div></div></section>
+  </main>
+  <aside class="design-note"><strong>Decisiones:</strong> el grid resuelve las regiones; Flexbox alinea controles dentro de cada componente. En móvil se priorizan la identificación y la acción principal, y el comprobante ocupa el ancho disponible. El catálogo proviene de un servicio consultable y el comprobante se genera después de su respuesta.</aside>
+</body>
+</html>
