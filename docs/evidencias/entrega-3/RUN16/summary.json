@@ -1,0 +1,148 @@
+{
+  "runId": "RUN16",
+  "generatedAt": "2026-11-28T04:15:27.771Z",
+  "gitBranch": "Entrega-3",
+  "codeCommit": "12dbcebe0af475a591172049c87133b3cde268d5",
+  "sourceWorktreeClean": true,
+  "browser": "chrome.exe",
+  "browserVersion": "158.0.8127.37",
+  "platform": "Windows headless browser with emulated viewports (not physical devices)",
+  "issueViewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "cashierViewport": {
+    "width": 375,
+    "height": 812
+  },
+  "passed": 10,
+  "failed": 0,
+  "tests": [
+    {
+      "id": "CA01/P01",
+      "name": "Gateway ready; anonymous order request is rejected",
+      "result": "PASSED",
+      "httpHealth": 200,
+      "anonymousStatus": 401
+    },
+    {
+      "id": "CA02/P02",
+      "name": "Secretary multi-voucher limit and cross-branch issue",
+      "result": "PASSED",
+      "emitted": 2,
+      "distinctVoucherNumbers": true,
+      "branches": [
+        "CENTRAL",
+        "NORTE"
+      ],
+      "duplicateStatus": 409
+    },
+    {
+      "id": "CA03/P03",
+      "name": "Issue request for a service outside the employee shift is rejected",
+      "result": "PASSED",
+      "status": 422,
+      "errorCode": "FUERA_DE_HORARIO"
+    },
+    {
+      "id": "CA04/P04",
+      "name": "Authenticated GraphQL totem summary is responsive at four viewports",
+      "result": "PASSED",
+      "employeeCode": "EMP002",
+      "viewports": [
+        {
+          "viewport": "375x812",
+          "horizontalOverflow": false,
+          "screenshot": "totem-375x812.png"
+        },
+        {
+          "viewport": "768x1024",
+          "horizontalOverflow": false,
+          "screenshot": "totem-768x1024.png"
+        },
+        {
+          "viewport": "1024x768",
+          "horizontalOverflow": false,
+          "screenshot": "totem-1024x768.png"
+        },
+        {
+          "viewport": "1440x900",
+          "horizontalOverflow": false,
+          "screenshot": "totem-1440x900.png"
+        }
+      ]
+    },
+    {
+      "id": "CA05/P05",
+      "name": "Employee issues, prints and reloads persisted CENA1 vale",
+      "result": "PASSED",
+      "voucherNumber": "VAL-20261128-6F3D0B",
+      "apiState": "IMPRESO",
+      "printActionInvoked": true,
+      "printStylesVerified": true,
+      "issueDurationMs": 145,
+      "correlationIds": [
+        "f5a2eb44-0eb2-4529-9764-082e3af42c46",
+        "929a41c0-e4b3-4254-8bc3-999633e3abba",
+        "5afdccb7-2111-4da5-b53a-8b7b9ff743fb"
+      ]
+    },
+    {
+      "id": "CA06/P06",
+      "name": "Duplicate voucher, IDOR and role escalation attempts are denied",
+      "result": "PASSED",
+      "duplicateStatus": 409,
+      "idorStatus": 403,
+      "adminRouteStatus": 403
+    },
+    {
+      "id": "CA07/P07",
+      "name": "Payments failure is visible in UI; GraphQL is partial and order state remains unchanged",
+      "result": "PASSED",
+      "uiMessage": "Error (UPSTREAM_UNAVAILABLE)\n\nEl subsistema PAYMENTS no está disponible.\n\nX-Correlation-ID: 3e9985fb-3595-487a-9f8f-4e013d0b5175",
+      "restFailureStatus": 504,
+      "partialError": "UPSTREAM_UNAVAILABLE",
+      "voucherStateAfterFailure": "IMPRESO",
+      "correlationIds": [
+        "4ede756f-13ec-476d-a33b-74035e3e6670",
+        "111a980d-336a-4713-b529-1974af1a7b68",
+        "17aced53-ed90-4eee-983f-a20b866af8c2"
+      ]
+    },
+    {
+      "id": "CA08/P08",
+      "name": "Restoring payments allows the same UI cart to retry once and persist a single settlement",
+      "result": "PASSED",
+      "recoveredStatus": 200,
+      "voucherState": "CANJEADO",
+      "transactionCount": 1,
+      "transactionState": "LIQUIDADO",
+      "cashierViewport": "375x812",
+      "cashierHorizontalOverflow": false,
+      "correlationIds": [
+        "6a60c3a4-17cd-4d97-94ce-1f5ddb92f860",
+        "fe36fcd5-450f-4e55-b902-0b597b7ac142",
+        "aa5ab99a-0d80-4c98-bb8e-0c4e34b3af2b"
+      ]
+    },
+    {
+      "id": "CA09/P09",
+      "name": "Admin creates an additional voucher in the SPA; beneficiary prints it in the totem",
+      "result": "PASSED",
+      "voucherNumber": "VAL-20261128-9EE04D",
+      "employeeCode": "SEC001",
+      "stateAfterCreation": "EMITIDO",
+      "stateAfterEmployeePrint": "IMPRESO",
+      "correlationIds": [
+        "0bee0a73-b79a-4eef-ab5c-0cd63205f0a7",
+        "225602a3-4fd4-4e28-b18f-3e2038b071cb"
+      ]
+    },
+    {
+      "id": "CA10/P10",
+      "name": "Administrator can return to the SPA audit panel after recovery",
+      "result": "PASSED",
+      "browserErrors": 0
+    }
+  ]
+}

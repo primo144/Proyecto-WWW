@@ -49,7 +49,7 @@ El stack se puede restablecer desde `docker compose --profile tools run --build 
 
 Los resultados esperados se fijaron antes de la ejecución final. La suite Oracle complementaria en `Entrega-2` cubre contratos, PL/SQL y otras operaciones REST; el browser runner de esta rama cubre los recorridos desde la SPA.
 
-| Criterio | Resultado observable | Prueba en RUN13/RUN14 |
+| Criterio | Resultado observable | Prueba en RUN15/RUN16 |
 | --- | --- | --- |
 | CA01 identidad y límite público | `/health` responde; pedido anónimo recibe 401 | P01 |
 | CA02 multi-vale/multi-sede | `SEC001` crea dos folios para beneficiarios distintos en CENTRAL/NORTE; repetición idempotente del mismo beneficiario recibe 409 | P02 |
@@ -59,7 +59,7 @@ Los resultados esperados se fijaron antes de la ejecución final. La suite Oracl
 | CA06 controles negativos | Vale duplicado 409, acceso a ficha ajena 403 y auditoría con rol funcionario 403 | P06 |
 | CA07 indisponibilidad controlada | API Gateway 504; caja muestra `UPSTREAM_UNAVAILABLE`; GraphQL mantiene resumen y reporta payments parcial; el vale no cambia | P07 |
 | CA08 recuperación/idempotencia | Mismo carrito se reintenta tras recuperar payments; vale `CANJEADO`, una transacción `LIQUIDADO` | P08 |
-| CA09 adicional | Admin emite vale desde la SPA y `SEC001` lo imprime desde el Tótem | P09 |
+| CA09 adicional | Admin emite vale desde la SPA y el beneficiario lo imprime desde el Tótem | P09 |
 | CA10 manejo posterior y errores UI | Admin vuelve al panel después de recuperación; cero errores JavaScript no manejados | P10 |
 
 La suite toma screenshots de página completa y guarda `X-Correlation-ID` para solicitudes clave. Verifica persistencia con GET independiente y comprueba la cobertura en el UI por viewport. Para RF2 se mide la solicitud normal y el flujo del browser en dos corridas. **No** se declara un p95/concurrencia de producción.
@@ -70,9 +70,9 @@ El print smoke intercepta `window.print()` y verifica que CSS `@media print` ocu
 
 | Incidencia | Hallazgo y efecto | Cambio | Revalidación |
 | --- | --- | --- | --- |
-| INC-01 (`RUN01`) | Tótem recibía GraphQL HTTP 400 por falta del campo `canjeadoEn` que solicitaba la SPA. | DTO Oracle/REST/GraphQL de vale incluye `canjeadoEn`; el contrato quedó probado en el smoke API de Entrega 2. | Corridas browser RUN13/RUN14 muestran resumen GraphQL y vales recientes desde la SPA. La evidencia pre-fix se conserva en `RUN01/`. |
-| INC-02 (`RUN02`) | El panel de error por fallo de Payments estaba presente, pero el test buscaba un rol ARIA `alert` que el helper UI no declara. | El browser runner observa el nodo `.state-error`; no se suprimió el mensaje ni se cambió el criterio funcional. | P07 en RUN13/RUN14 registra `UPSTREAM_UNAVAILABLE` visible. El screenshot pre-fix del selector se conserva en `RUN02/`. |
-| INC-03 (`RUN07`) | El combo de beneficiario seleccionó `SEC001`; la prueba asumía `EMP001` e intentó imprimir como titular distinto. | El runner toma `codigoFuncionario` del vale emitido y comprueba el derecho del beneficiario real. | CA09/P09 en RUN13/RUN14: vale adicional se crea en UI y se imprime por SEC001. El screenshot de creación fallida del runner se conserva en `RUN07/`. |
+| INC-01 (`RUN01`) | Tótem recibía GraphQL HTTP 400 por falta del campo `canjeadoEn` que solicitaba la SPA. | DTO Oracle/REST/GraphQL de vale incluye `canjeadoEn`; el contrato quedó probado en el smoke API de Entrega 2. | Corridas browser RUN15/RUN16 muestran resumen GraphQL y vales recientes desde la SPA. La evidencia pre-fix se conserva en `RUN01/`. |
+| INC-02 (`RUN02`) | El panel de error por fallo de Payments estaba presente, pero el test buscaba un rol ARIA `alert` que el helper UI no declara. | El browser runner observa el nodo `.state-error`; no se suprimió el mensaje ni se cambió el criterio funcional. | P07 en RUN15/RUN16 registra `UPSTREAM_UNAVAILABLE` visible. El screenshot pre-fix del selector se conserva en `RUN02/`. |
+| INC-03 (`RUN07`) | El combo de beneficiario seleccionó `SEC001`; la prueba asumía `EMP001` e intentó imprimir como titular distinto. | El runner toma `codigoFuncionario` del vale emitido y comprueba el derecho del beneficiario real. | CA09/P09 en RUN15/RUN16: vale adicional se crea en UI y se imprime por su titular. El screenshot de creación fallida del runner se conserva en `RUN07/`. |
 
 Los intentos iniciales fallidos pertenecen a versiones de implementación/test diferentes. Se reportan como incidencias cerradas; no se combinan con los indicadores de la versión final. RUN03–RUN12 son corridas exploratorias previas y permanecen como histórico.
 
@@ -89,14 +89,16 @@ Los intentos iniciales fallidos pertenecen a versiones de implementación/test d
 
 ## Etapa 4 — Ejecución y evidencias
 
-El runbook realiza `db-reset`, pone Orders y GraphQL en `DOTNET_ENVIRONMENT=Testing` con `APP_TEST_NOW_SANTIAGO=21:00 America/Santiago`, y ejecuta dos resets completos independientes. En RUN13 se emite desde viewport móvil y se canjea en escritorio; en RUN14 se invierten esos viewports. Ambos resúmenes llevan marca UTC, versión de Chrome headless, resultados por criterio, folio y correlaciones sanitizadas.
+El runbook realiza `db-reset`, pone Orders y GraphQL en `DOTNET_ENVIRONMENT=Testing` con `APP_TEST_NOW_SANTIAGO=21:00 America/Santiago`, y ejecuta dos resets completos independientes. En RUN15 se emite desde viewport móvil y se canjea en escritorio; en RUN16 se invierten esos viewports. Ambos resúmenes registran branch/commit probado y árbol fuente limpio, marca UTC, versión de Chrome headless, resultados por criterio, folio y correlaciones sanitizadas.
 
 | Run final | Pruebas browser | Resultado | Evidencia |
 | --- | ---: | --- | --- |
-| RUN13 | 10 | 10 aprobadas, 0 fallidas | [`summary.json`](evidencias/entrega-3/RUN13/summary.json), screenshots asociados |
-| RUN14 | 10 | 10 aprobadas, 0 fallidas | [`summary.json`](evidencias/entrega-3/RUN14/summary.json), screenshots asociados |
+| RUN15 | 10 | 10 aprobadas, 0 fallidas | [`summary.json`](evidencias/entrega-3/RUN15/summary.json), screenshots asociados |
+| RUN16 | 10 | 10 aprobadas, 0 fallidas | [`summary.json`](evidencias/entrega-3/RUN16/summary.json), screenshots asociados |
 
-El paquete lleva [índice y límites de validez](evidencias/entrega-3/README.md) y [matriz CSV](TRAZABILIDAD_UNIDAD_3.csv). Los tokens viven en memoria de la suite; no se serializan. `RUN01`, `RUN02`, `RUN07` registran las iteraciones de depuración y no cuentan dentro de las métricas de RUN13/RUN14.
+Ambas corridas registran `gitBranch=Entrega-3`, `codeCommit=12dbceb` y `sourceWorktreeClean=true` en sus summaries.
+
+El paquete lleva [índice y límites de validez](evidencias/entrega-3/README.md) y [matriz CSV](TRAZABILIDAD_UNIDAD_3.csv). Los tokens viven en memoria de la suite; no se serializan. `RUN01`, `RUN02`, `RUN07` registran las iteraciones de depuración y no cuentan dentro de las métricas de RUN15/RUN16. RUN13/RUN14 se conservan como las dos ejecuciones previas de los mismos criterios, antes de incorporar metadatos de procedencia a los summaries.
 
 ## Etapa 5 — Incidencias y regresión
 
@@ -112,7 +114,7 @@ Indicadores para el alcance de trazabilidad RF01–RF14:
 | --- | --- | ---: | --- |
 | Cobertura del diseño | 14 requisitos con criterio y referencia de prueba / 14 | 100% | Planificación/trazabilidad, no éxito automático |
 | Ejecución del plan browser final | 10 pruebas distintas con resultado / 10 planificadas | 100% | Sin bloqueadas/no ejecutadas dentro del conjunto P01–P10 |
-| Aprobación final observada | 10 pruebas distintas aprobadas / 10 ejecutadas | 100% | RUN13 y RUN14 repiten los 10 criterios (20/20 resultados aprobados) |
+| Aprobación final observada | 10 pruebas distintas aprobadas / 10 ejecutadas | 100% | RUN15 y RUN16 repiten los 10 criterios (20/20 resultados aprobados) |
 | Logro demostrado | 13 requisitos con criterio observable/evidencia suficiente / 14 en alcance | 92,9% | RF14 queda parcialmente demostrado por correo sandbox/API de prueba |
 
 La matriz [`TRAZABILIDAD_UNIDAD_3.csv`](TRAZABILIDAD_UNIDAD_3.csv) vincula RF, flujo, pantalla, rol, sistema, criterio, prueba, ejecución y conclusión. El porcentaje de logro refleja límites del caso; no es probabilidad de éxito en producción.
