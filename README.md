@@ -3,6 +3,7 @@
 Rama acumulativa: conserva la Entrega 1 (prototipo responsivo, equivalente local a Figma, API simulada y evidencias) e integra los flujos del Caso 18 con un backend en **ASP.NET Core 10** y **Oracle Database Free**. El Compose predeterminado inicia esta arquitectura .NET/Oracle.
 
 - [Informe de arquitectura — Unidad 2](docs/INFORME_UNIDAD_2_BACKEND.md)
+- [Manual de usuario](docs/MANUAL_USUARIO.md)
 - [Informe y evidencias de la Entrega 1](docs/ENTREGA_1_FRONTEND.md)
 - [Enunciado del Caso 18 y pautas](docs/enunciados/)
 - [Evidencias del frontend](docs/evidencias/entrega-1/README.md)
