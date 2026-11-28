@@ -6,6 +6,7 @@ La prueba de integración ejecutable es `npm run test:oracle`; su runbook [`../.
 
 | Corrida | Resultado | Archivo |
 | --- | --- | --- |
+| `RUN_UNIT2_2026-11-28T03-05-06-867Z` | 22 aprobadas, 0 fallidas; Oracle API, rotación de refresh y administración desde SPA | [`summary.json`](RUN_UNIT2_2026-11-28T03-05-06-867Z/summary.json) |
 | `RUN_UNIT2_2026-11-28T02-49-46-852Z` | 21 aprobadas, 0 fallidas; API Oracle y administración desde SPA headless, deps npm audit limpias | [`summary.json`](RUN_UNIT2_2026-11-28T02-49-46-852Z/summary.json) |
 | `RUN_UNIT2_2026-11-28T02-47-13-889Z` | 21 aprobadas, 0 fallidas; API Oracle y administración desde SPA headless | [`summary.json`](RUN_UNIT2_2026-11-28T02-47-13-889Z/summary.json) |
 | `RUN_UNIT2_2026-11-28T02-38-38-776Z` | 21 aprobadas, 0 fallidas; API Oracle y administración desde SPA en Edge headless | [`summary.json`](RUN_UNIT2_2026-11-28T02-38-38-776Z/summary.json) |

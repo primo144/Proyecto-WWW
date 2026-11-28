@@ -1,0 +1,209 @@
+{
+  "runId": "RUN_UNIT2_2026-11-28T03-05-06-867Z",
+  "generatedAt": "2026-11-28T03:05:08.784Z",
+  "gateway": "http://localhost:8080",
+  "environment": "Testing",
+  "clockOverride": "2026-11-28T21:00:00-03:00",
+  "passed": 22,
+  "failed": 0,
+  "items": [
+    {
+      "id": "P00",
+      "title": "Gateway health",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "aeae293e-4eec-449a-b888-8da338929ce3",
+      "durationMs": 59,
+      "service": "api-gateway"
+    },
+    {
+      "id": "P01",
+      "title": "Anonymous catalog query backed by Oracle",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "c32c8a01-7a84-4c2b-9c23-7bf620e1070e",
+      "durationMs": 16,
+      "rows": 5
+    },
+    {
+      "id": "P02",
+      "title": "Anonymous access is rejected",
+      "result": "PASSED",
+      "httpStatus": 401,
+      "correlationId": "2f5db024-445e-4a0c-87ac-0ca5259818c8",
+      "durationMs": 20
+    },
+    {
+      "id": "P03",
+      "title": "PBKDF2 login and persistent session",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "aefd9bf9-b84e-47c4-b017-b65818958fee",
+      "durationMs": 76,
+      "account": "EMP001",
+      "role": "FUNCIONARIO"
+    },
+    {
+      "id": "P04",
+      "title": "Authorized employee reads own profile",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "fcf88e09-de1b-44a6-b9d7-b2418b5c608b",
+      "durationMs": 49
+    },
+    {
+      "id": "P05",
+      "title": "Cross-employee IDOR is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "5ab3d70c-9e73-42f3-a5dd-649c7471ee01",
+      "durationMs": 6
+    },
+    {
+      "id": "P06",
+      "title": "Non-admin audit access is rejected",
+      "result": "PASSED",
+      "httpStatus": 403,
+      "correlationId": "15144e6c-a700-42aa-a3b6-548bb370ff09",
+      "durationMs": 14
+    },
+    {
+      "id": "P07",
+      "title": "GraphQL summary aggregates clients, inventory, orders and payments",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "83f8ed22-2e0f-40f9-a75f-fed38d9861e8",
+      "durationMs": 624,
+      "serviceRows": 2,
+      "branches": 2,
+      "partialErrors": 0
+    },
+    {
+      "id": "P08",
+      "title": "GraphQL depth limit rejects a depth-five query",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "15d69841-26f3-43d1-be13-7086db0110de",
+      "durationMs": 19
+    },
+    {
+      "id": "P09",
+      "title": "GraphQL alias and complexity limits reject abuse",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "61bb62c9-7ad5-4c09-a793-7e89888f4feb",
+      "durationMs": 4
+    },
+    {
+      "id": "P10",
+      "title": "Clients service creates a profile",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "42cc2c76-d8ba-4d73-8345-381f1b683fae",
+      "durationMs": 22,
+      "profileCode": "TEST_PROFILE_MWZTUTH3"
+    },
+    {
+      "id": "P11",
+      "title": "Clients and Auth services create a linked employee login",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "3f3b12f7-fe01-4bfa-90d6-22e84c21b3aa",
+      "durationMs": 76,
+      "account": "TESTZTUTH3"
+    },
+    {
+      "id": "P12",
+      "title": "Inventory creates and updates authoritative product availability",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "1ec8b032-2392-48d4-9adf-49ff0f70df5d",
+      "durationMs": 16,
+      "productCode": "TEST_MWZTUTH3"
+    },
+    {
+      "id": "P13",
+      "title": "Inventory creates an extensible service, schedule and valuation",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "3e9b7510-8090-4714-ab02-a051d1181d0e",
+      "durationMs": 38,
+      "serviceCode": "TEST_SERVICE_MWZTUTH3"
+    },
+    {
+      "id": "P14",
+      "title": "Clients updates monthly shift and branch assignment",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "16044deb-e859-4a0e-853d-0d51e1b04564",
+      "durationMs": 18,
+      "shift": 2,
+      "branch": "NORTE"
+    },
+    {
+      "id": "P15",
+      "title": "Normal voucher issue is persisted below RF2 and duplicate is rejected",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "c3016a43-955e-4e7e-b81c-c58e5754251a",
+      "durationMs": 138,
+      "voucherNumber": "VAL-20261128-BA3D12",
+      "duplicateStatus": 409
+    },
+    {
+      "id": "P16",
+      "title": "Voucher canje persists a payment computed from inventory and rejects replay",
+      "result": "PASSED",
+      "httpStatus": 201,
+      "correlationId": "7ec68642-a3ec-4524-ae7c-2250486ef681",
+      "durationMs": 74,
+      "voucherNumber": "VAL-20261128-BA3D12",
+      "paymentId": "fca3c25c-19d9-4994-a65a-50e7b721d1db",
+      "duplicateStatus": 409
+    },
+    {
+      "id": "P17",
+      "title": "Request validation rejects prices supplied by a browser",
+      "result": "PASSED",
+      "httpStatus": 400,
+      "correlationId": "372eb6af-f7ca-4311-aa3f-9e15f871fde8",
+      "durationMs": 17
+    },
+    {
+      "id": "P18",
+      "title": "Oracle stored procedure generates and dispatches sandbox notices",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "7834add9-802a-4be3-afa9-c1ad97ac0005",
+      "durationMs": 104,
+      "totalProcessed": 8,
+      "sandboxDelivered": 8
+    },
+    {
+      "id": "P19",
+      "title": "GraphQL admin audit composes orders and payments",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "0b2e56cc-8a18-4884-b234-e5a77202463a",
+      "durationMs": 47,
+      "redeemed": 1
+    },
+    {
+      "id": "P20",
+      "title": "Logout persists session revocation",
+      "result": "PASSED",
+      "httpStatus": 401,
+      "correlationId": "29eb2eaa-95c5-4540-9334-2b1e9e5cb75b",
+      "durationMs": 13
+    },
+    {
+      "id": "P21",
+      "title": "Refresh token rotation and replay rejection",
+      "result": "PASSED",
+      "httpStatus": 200,
+      "correlationId": "20c6a36e-0666-4312-8d87-fa2bc2031a44",
+      "durationMs": 55,
+      "replayStatus": 401
+    }
+  ]
+}

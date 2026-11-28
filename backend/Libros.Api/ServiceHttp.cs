@@ -33,7 +33,21 @@ public sealed class ServiceHttp(IHttpClientFactory clients, IConfiguration confi
         }
         if (body is not null) request.Content = JsonContent.Create(body, options: JsonOptions);
 
-        using var response = await clients.CreateClient("internal").SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+        HttpResponseMessage response;
+        try
+        {
+            response = await clients.CreateClient("internal").SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            throw new DomainException(504, "UPSTREAM_TIMEOUT", $"El subsistema {service} excedió el plazo configurado.");
+        }
+        catch (HttpRequestException)
+        {
+            throw new DomainException(503, "UPSTREAM_UNAVAILABLE", $"El subsistema {service} no está disponible.");
+        }
+        using (response)
+        {
         var json = await response.Content.ReadAsStringAsync(ct);
         if (!response.IsSuccessStatusCode)
         {
@@ -58,6 +72,7 @@ public sealed class ServiceHttp(IHttpClientFactory clients, IConfiguration confi
         catch (JsonException)
         {
             throw new DomainException(502, "INVALID_UPSTREAM_RESPONSE", "La respuesta del subsistema no respeta el contrato JSON.");
+        }
         }
     }
 }

@@ -1,27 +1,33 @@
 $ErrorActionPreference = 'Stop'
 
 # Reuse the active compose configuration without printing its secret values.
-$gatewayEnvironment = (docker inspect libros_api_gateway | ConvertFrom-Json)[0].Config.Env
+function Get-ServiceEnvironment([string]$service) {
+  $containerId = (docker compose ps -q $service).Trim()
+  if ([string]::IsNullOrWhiteSpace($containerId)) { throw "Compose service '$service' is not running; start the stack before running this test." }
+  return (docker inspect $containerId | ConvertFrom-Json)[0].Config.Env
+}
+
+$gatewayEnvironment = Get-ServiceEnvironment 'gateway'
 foreach ($entry in $gatewayEnvironment) {
   $parts = $entry.Split('=', 2)
   if ($parts[0].StartsWith('INTERNAL_TOKEN_')) {
     Set-Item -Path "Env:$($parts[0])" -Value $parts[1]
   }
 }
-$oracleEnvironment = (docker inspect libros_oracle | ConvertFrom-Json)[0].Config.Env
+$oracleEnvironment = Get-ServiceEnvironment 'oracle'
 foreach ($entry in $oracleEnvironment) {
   $parts = $entry.Split('=', 2)
   if ($parts[0] -eq 'ORACLE_PASSWORD') { $env:ORACLE_SYSTEM_PASSWORD = $parts[1] }
 }
 $connectionMappings = @(
-  @{ Container = 'libros_auth_service'; Variable = 'AUTH_DB_PASSWORD' },
-  @{ Container = 'libros_clients_service'; Variable = 'CLIENTS_DB_PASSWORD' },
-  @{ Container = 'libros_inventory_service'; Variable = 'INVENTORY_DB_PASSWORD' },
-  @{ Container = 'libros_orders_service'; Variable = 'ORDERS_DB_PASSWORD' },
-  @{ Container = 'libros_payments_service'; Variable = 'PAYMENTS_DB_PASSWORD' }
+  @{ Container = 'auth-service'; Variable = 'AUTH_DB_PASSWORD' },
+  @{ Container = 'clients-service'; Variable = 'CLIENTS_DB_PASSWORD' },
+  @{ Container = 'inventory-service'; Variable = 'INVENTORY_DB_PASSWORD' },
+  @{ Container = 'orders-service'; Variable = 'ORDERS_DB_PASSWORD' },
+  @{ Container = 'payments-service'; Variable = 'PAYMENTS_DB_PASSWORD' }
 )
 foreach ($mapping in $connectionMappings) {
-  $serviceEnvironment = (docker inspect $mapping.Container | ConvertFrom-Json)[0].Config.Env
+  $serviceEnvironment = Get-ServiceEnvironment $mapping.Container
   foreach ($entry in $serviceEnvironment) {
     if ($entry.StartsWith('ORACLE_CONNECTION_STRING=')) {
       $connection = $entry.Substring('ORACLE_CONNECTION_STRING='.Length)

@@ -66,6 +66,7 @@ async function tryRefreshAccessToken() {
     saveSession({
       ...session,
       accessToken: data.accessToken,
+      refreshToken: data.refreshToken || session.refreshToken,
       user: data.user || session.user
     });
     return true;

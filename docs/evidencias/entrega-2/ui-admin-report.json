@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-28T02:49:51.253Z",
+  "generatedAt": "2026-11-28T03:05:11.481Z",
   "browser": "chrome.exe",
   "browserVersion": "158.0.8127.37",
   "viewport": "1440x900 (emulated, headless)",
@@ -8,13 +8,13 @@
     {
       "flow": "Admin crea producto desde SPA",
       "status": 201,
-      "productCode": "UI_MWZTB5IZ",
+      "productCode": "UI_MWZTUVK0",
       "screenshot": "ui-admin-productos.png"
     },
     {
       "flow": "Admin registra funcionario y credenciales desde SPA",
       "status": 201,
-      "employeeCode": "UI34190919",
+      "employeeCode": "UI35111172",
       "screenshot": "ui-admin-funcionarios.png"
     }
   ],

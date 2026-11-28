@@ -216,6 +216,13 @@ async function main() {
   const revoked = await call('/api/v1/clients/employees/me', { token: newLogin.token });
   status(revoked, 401, 'revoked session rejection');
   observe('P20', 'Logout persists session revocation', revoked);
+
+  const refreshed = await call('/api/v1/auth/refresh', { method: 'POST', body: { refreshToken: employee.refreshToken } });
+  status(refreshed, 200, 'refresh token rotation');
+  assert.ok(refreshed.data.accessToken && refreshed.data.refreshToken && refreshed.data.refreshToken !== employee.refreshToken);
+  const oldRefresh = await call('/api/v1/auth/refresh', { method: 'POST', body: { refreshToken: employee.refreshToken } });
+  status(oldRefresh, 401, 'replay of a rotated refresh token');
+  observe('P21', 'Refresh token rotation and replay rejection', refreshed, { replayStatus: oldRefresh.status });
 }
 
 await mkdir(evidenceDir, { recursive: true });
