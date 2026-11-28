@@ -1,0 +1,111 @@
+{
+  "runId": "RUN03",
+  "generatedAt": "2026-11-28T03:20:53.027Z",
+  "browser": "chrome.exe",
+  "browserVersion": "158.0.8127.37",
+  "platform": "Windows headless browser with emulated viewports (not physical devices)",
+  "issueViewport": {
+    "width": 375,
+    "height": 812
+  },
+  "cashierViewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "passed": 7,
+  "failed": 0,
+  "tests": [
+    {
+      "id": "CA01/P01",
+      "name": "Gateway ready; anonymous order request is rejected",
+      "result": "PASSED",
+      "httpHealth": 200,
+      "anonymousStatus": 401
+    },
+    {
+      "id": "CA02/P02",
+      "name": "Authenticated GraphQL totem summary is responsive at four viewports",
+      "result": "PASSED",
+      "employeeCode": "EMP002",
+      "viewports": [
+        {
+          "viewport": "375x812",
+          "horizontalOverflow": false,
+          "screenshot": "totem-375x812.png"
+        },
+        {
+          "viewport": "768x1024",
+          "horizontalOverflow": false,
+          "screenshot": "totem-768x1024.png"
+        },
+        {
+          "viewport": "1024x768",
+          "horizontalOverflow": false,
+          "screenshot": "totem-1024x768.png"
+        },
+        {
+          "viewport": "1440x900",
+          "horizontalOverflow": false,
+          "screenshot": "totem-1440x900.png"
+        }
+      ]
+    },
+    {
+      "id": "CA03/P03",
+      "name": "Employee issues, prints and reloads persisted CENA1 vale",
+      "result": "PASSED",
+      "voucherNumber": "VAL-20261128-4AC9D3",
+      "apiState": "IMPRESO",
+      "printActionInvoked": true,
+      "printStylesVerified": true,
+      "issueDurationMs": 243,
+      "correlationIds": [
+        "8975fdc8-2c22-468f-bbde-dedde7295f7c",
+        "a0f451b9-9dd3-4985-b25d-24c9305cfe55",
+        "9fe9e0ba-8e57-4410-99e3-4be7282af486"
+      ]
+    },
+    {
+      "id": "CA04/P04",
+      "name": "Duplicate voucher, IDOR and role escalation attempts are denied",
+      "result": "PASSED",
+      "duplicateStatus": 409,
+      "idorStatus": 403,
+      "adminRouteStatus": 403
+    },
+    {
+      "id": "CA05/P05",
+      "name": "Payments failure is visible in UI; GraphQL is partial and order state remains unchanged",
+      "result": "PASSED",
+      "uiMessage": "Error (UPSTREAM_UNAVAILABLE)\n\nEl subsistema PAYMENTS no está disponible.\n\nX-Correlation-ID: 2e25ccd5-976d-49ff-8ccb-3dcd24772bfd",
+      "restFailureStatus": 504,
+      "partialError": "UPSTREAM_UNAVAILABLE",
+      "voucherStateAfterFailure": "IMPRESO",
+      "correlationIds": [
+        "91944963-6415-4cea-9f50-149208b3c619",
+        "74f2abac-f37d-4614-b20b-f82d93249ba8",
+        "0e86af9a-1b39-45f4-b8f5-30d34b6c8fff"
+      ]
+    },
+    {
+      "id": "CA06/P06",
+      "name": "Restoring payments allows the same UI cart to retry once and persist a single settlement",
+      "result": "PASSED",
+      "recoveredStatus": 200,
+      "voucherState": "CANJEADO",
+      "transactionCount": 1,
+      "transactionState": "LIQUIDADO",
+      "correlationIds": [
+        "fce432e0-d37b-4a73-8237-52c648b1f5bd",
+        "449107c5-e5bb-4044-a230-3f80ebef8230",
+        "eea72c83-fa3a-44a8-867d-4bcac1ad9963"
+      ]
+    },
+    {
+      "id": "CA07/P07",
+      "name": "Administrator can return to the SPA audit panel after recovery",
+      "result": "PASSED",
+      "browserErrors": 0
+    }
+  ]
+}

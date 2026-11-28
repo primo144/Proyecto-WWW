@@ -11,7 +11,6 @@ x-backend: &backend
 services:
   oracle:
     image: gvenzl/oracle-free:23-slim-faststart
-    container_name: libros_oracle
     environment:
       ORACLE_PASSWORD: ${ORACLE_SYSTEM_PASSWORD:-CHANGE_ME_Oracle2026!}
     volumes:
@@ -29,7 +28,6 @@ services:
 
   db-seed:
     <<: *backend
-    container_name: libros_oracle_seed
     environment:
       SERVICE_KIND: SEED
       SEED_AUTH_CONNECTION: "User Id=AUTH_SVC;Password=${AUTH_DB_PASSWORD:-CHANGE_ME_Auth2026!};Data Source=oracle:1521/FREEPDB1;Connection Timeout=20"
@@ -42,7 +40,6 @@ services:
 
   db-reset:
     <<: *backend
-    container_name: libros_oracle_reset
     profiles: ["tools"]
     environment:
       SERVICE_KIND: RESET
@@ -58,7 +55,6 @@ services:
 
   auth-service:
     <<: *backend
-    container_name: libros_auth_service
     environment:
       SERVICE_KIND: AUTH
       ASPNETCORE_URLS: http://+:4001
@@ -77,7 +73,6 @@ services:
 
   clients-service:
     <<: *backend
-    container_name: libros_clients_service
     environment:
       SERVICE_KIND: CLIENTS
       ASPNETCORE_URLS: http://+:4002
@@ -97,7 +92,6 @@ services:
 
   inventory-service:
     <<: *backend
-    container_name: libros_inventory_service
     environment:
       SERVICE_KIND: INVENTORY
       ASPNETCORE_URLS: http://+:4003
@@ -115,7 +109,6 @@ services:
 
   payments-service:
     <<: *backend
-    container_name: libros_payments_service
     environment:
       SERVICE_KIND: PAYMENTS
       ASPNETCORE_URLS: http://+:4005
@@ -139,7 +132,6 @@ services:
 
   orders-service:
     <<: *backend
-    container_name: libros_orders_service
     environment:
       SERVICE_KIND: ORDERS
       ASPNETCORE_URLS: http://+:4004
@@ -172,7 +164,6 @@ services:
 
   graphql-gateway:
     <<: *backend
-    container_name: libros_graphql_gateway
     environment:
       SERVICE_KIND: GRAPHQL
       ASPNETCORE_URLS: http://+:4006
@@ -207,7 +198,6 @@ services:
 
   gateway:
     <<: *backend
-    container_name: libros_api_gateway
     environment:
       SERVICE_KIND: GATEWAY
       ASPNETCORE_URLS: http://+:8080
@@ -254,7 +244,6 @@ services:
 
   frontend:
     image: nginx:1.27-alpine
-    container_name: libros_frontend
     volumes:
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./frontend/index.html:/usr/share/nginx/html/index.html:ro

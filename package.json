@@ -11,6 +11,7 @@
     "test:prototype": "node tests/prototype/eval1-responsive.mjs",
     "test:oracle": "node tests/oracle/entrega2-smoke.mjs",
     "test:oracle:ui": "node tests/oracle/admin-ui-smoke.mjs",
+    "test:ui:e2e": "node tests/oracle/entrega3-browser-e2e.mjs",
     "build:backend": "dotnet build backend/LibrosBackend.slnx",
     "reset:oracle": "docker compose --profile tools run --build --rm db-reset"
   },

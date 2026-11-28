@@ -1,0 +1,138 @@
+{
+  "runId": "RUN10",
+  "generatedAt": "2026-11-28T03:37:34.845Z",
+  "browser": "chrome.exe",
+  "browserVersion": "158.0.8127.37",
+  "platform": "Windows headless browser with emulated viewports (not physical devices)",
+  "issueViewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "cashierViewport": {
+    "width": 375,
+    "height": 812
+  },
+  "passed": 9,
+  "failed": 0,
+  "tests": [
+    {
+      "id": "CA01/P01",
+      "name": "Gateway ready; anonymous order request is rejected",
+      "result": "PASSED",
+      "httpHealth": 200,
+      "anonymousStatus": 401
+    },
+    {
+      "id": "CA02/P02",
+      "name": "Secretary multi-voucher limit and cross-branch issue",
+      "result": "PASSED",
+      "emitted": 2,
+      "distinctVoucherNumbers": true,
+      "branches": [
+        "CENTRAL",
+        "NORTE"
+      ],
+      "duplicateStatus": 409
+    },
+    {
+      "id": "CA03/P03",
+      "name": "Authenticated GraphQL totem summary is responsive at four viewports",
+      "result": "PASSED",
+      "employeeCode": "EMP002",
+      "viewports": [
+        {
+          "viewport": "375x812",
+          "horizontalOverflow": false,
+          "screenshot": "totem-375x812.png"
+        },
+        {
+          "viewport": "768x1024",
+          "horizontalOverflow": false,
+          "screenshot": "totem-768x1024.png"
+        },
+        {
+          "viewport": "1024x768",
+          "horizontalOverflow": false,
+          "screenshot": "totem-1024x768.png"
+        },
+        {
+          "viewport": "1440x900",
+          "horizontalOverflow": false,
+          "screenshot": "totem-1440x900.png"
+        }
+      ]
+    },
+    {
+      "id": "CA04/P04",
+      "name": "Employee issues, prints and reloads persisted CENA1 vale",
+      "result": "PASSED",
+      "voucherNumber": "VAL-20261128-B24ECE",
+      "apiState": "IMPRESO",
+      "printActionInvoked": true,
+      "printStylesVerified": true,
+      "issueDurationMs": 208,
+      "correlationIds": [
+        "0b81d3d6-c51a-4e70-aaac-4ef021432cfb",
+        "b2b750f0-ecda-468e-a50c-3fbfbbd09dae",
+        "5236fcf9-92b1-4454-9ee3-3dbc218aabb2"
+      ]
+    },
+    {
+      "id": "CA05/P05",
+      "name": "Duplicate voucher, IDOR and role escalation attempts are denied",
+      "result": "PASSED",
+      "duplicateStatus": 409,
+      "idorStatus": 403,
+      "adminRouteStatus": 403
+    },
+    {
+      "id": "CA06/P06",
+      "name": "Payments failure is visible in UI; GraphQL is partial and order state remains unchanged",
+      "result": "PASSED",
+      "uiMessage": "Error (UPSTREAM_UNAVAILABLE)\n\nEl subsistema PAYMENTS no está disponible.\n\nX-Correlation-ID: 64b8219a-11b3-4dc6-a254-cd52f65f4aee",
+      "restFailureStatus": 504,
+      "partialError": "UPSTREAM_UNAVAILABLE",
+      "voucherStateAfterFailure": "IMPRESO",
+      "correlationIds": [
+        "c3b6cf70-d8e8-400e-bfd9-310ff538f19d",
+        "527753b5-69a1-4457-9c20-236e998bd73c",
+        "802f7243-a1b3-4145-84e6-6e63d75d07f1"
+      ]
+    },
+    {
+      "id": "CA07/P07",
+      "name": "Restoring payments allows the same UI cart to retry once and persist a single settlement",
+      "result": "PASSED",
+      "recoveredStatus": 200,
+      "voucherState": "CANJEADO",
+      "transactionCount": 1,
+      "transactionState": "LIQUIDADO",
+      "cashierViewport": "375x812",
+      "cashierHorizontalOverflow": false,
+      "correlationIds": [
+        "8e5b0e23-d099-4fb2-9130-6196c27c4a7d",
+        "ad2fdd2f-b4f4-408f-b29b-c181a27b7e57",
+        "dfa58e39-3c58-41b0-a0fe-1e3f736e135f"
+      ]
+    },
+    {
+      "id": "CA08/P08",
+      "name": "Admin creates an additional voucher in the SPA; beneficiary prints it in the totem",
+      "result": "PASSED",
+      "voucherNumber": "VAL-20261128-0E1F05",
+      "employeeCode": "SEC001",
+      "stateAfterCreation": "EMITIDO",
+      "stateAfterEmployeePrint": "IMPRESO",
+      "correlationIds": [
+        "19246e32-d364-4c53-a756-38e7178e3754",
+        "f298b953-2cad-4c04-bc51-8c2721737a99"
+      ]
+    },
+    {
+      "id": "CA09/P09",
+      "name": "Administrator can return to the SPA audit panel after recovery",
+      "result": "PASSED",
+      "browserErrors": 0
+    }
+  ]
+}

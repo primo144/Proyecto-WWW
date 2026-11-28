@@ -1,9 +1,11 @@
-# Entrega 2 · Backend seguro con Oracle y .NET
+# Entrega 3 · Integración y validación con evidencias
 
 Rama acumulativa: conserva la Entrega 1 (prototipo responsivo, equivalente local a Figma, API simulada y evidencias) e integra los flujos del Caso 18 con un backend en **ASP.NET Core 10** y **Oracle Database Free**. El Compose predeterminado inicia esta arquitectura .NET/Oracle.
 
 - [Informe de arquitectura — Unidad 2](docs/INFORME_UNIDAD_2_BACKEND.md)
 - [Manual de usuario](docs/MANUAL_USUARIO.md)
+- [Informe de integración y validación — Unidad 3](docs/INFORME_UNIDAD_3_VALIDACION.md)
+- [Matriz de trazabilidad Unidad 3](docs/TRAZABILIDAD_UNIDAD_3.csv)
 - [Informe y evidencias de la Entrega 1](docs/ENTREGA_1_FRONTEND.md)
 - [Enunciado del Caso 18 y pautas](docs/enunciados/)
 - [Evidencias del frontend](docs/evidencias/entrega-1/README.md)
@@ -34,6 +36,8 @@ Requisitos: Docker Desktop/Compose v2, .NET SDK 10 y Node.js 20+ para las suites
    ```
 
 4. Abre `http://localhost:3000`. La API pública está en `http://localhost:8080`; Oracle y los microservicios no publican puertos en el host.
+
+Los nombres/volúmenes de Compose quedan aislados por carpeta de rama. Los puertos públicos `3000` y `8080` son fijos, así que detén la otra entrega antes de iniciar esta.
 
 Oracle ejecuta `db/oracle/01-create-users.sql` en el primer inicio. El servicio `db-seed` carga las cuentas y los datos ficticios de forma idempotente. El reset determinista es:
 
@@ -76,6 +80,14 @@ Para validar Oracle y los recorridos backend desde un estado limpio, ejecuta:
 El script restablece Oracle, inicia temporalmente `orders-service` con un reloj simulado a las 21:00 de Santiago (para que el ensayo repetible emita `CENA1` del turno 2), ejecuta `npm run test:oracle` y devuelve ese servicio al modo normal. Las pruebas crean empleados/productos/servicios y vales ficticios; las evidencias sanitizadas se guardan en `docs/evidencias/entrega-2/`.
 
 Las salidas registran una medición aislada de emisión; **no** constituyen benchmark de concurrencia ni una afirmación de p95. Las capturas de Entrega 1 son emulación de navegador, no pruebas en hardware físico.
+
+La validación acumulativa desde la SPA y dos ejecuciones independientes se realiza con:
+
+```powershell
+.\tests\oracle\run-entrega3-cycle.ps1
+```
+
+El runbook restablece Oracle antes de cada ejecución, emite y canjea desde el navegador, comprueba cuatro viewports, frena y recupera `payments-service` para probar el error/reintento y archiva las evidencias en `docs/evidencias/entrega-3/`. Cada ciclo parte del stack Docker Compose activo y al terminar devuelve Orders/GraphQL a modo normal.
 
 ## Entrega 1 conservada
 
